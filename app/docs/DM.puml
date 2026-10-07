@@ -1,0 +1,31 @@
+@startuml
+hide circle
+skinparam classAttributeIconSize 0
+title Modelo de Domínio - SmartLib
+
+class Utilizador {
+  id: String
+  email: String
+}
+
+class Livro {
+  isbn: String
+  titulo: String
+  autores: String
+  descricao: String
+  numeroPaginas: int
+  capaUrl: String
+  stockTotal: int
+  copiasDisponiveis: int
+}
+
+class Emprestimo {
+  id: String
+  dataRequisicao: Date
+  dataDevolucao: Date
+  estado: String
+}
+
+Utilizador "1" -- "0..*" Emprestimo : realiza >
+Livro "1" -- "0..*" Emprestimo : é alvo de <
+@enduml

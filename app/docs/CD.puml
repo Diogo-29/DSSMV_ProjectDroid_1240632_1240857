@@ -1,0 +1,126 @@
+@startuml
+skinparam classAttributeIconSize 0
+title Diagrama de Classes - SmartLib
+
+package "models" {
+    class User {
+        - uid: String
+        - email: String
+        + getUid(): String
+        + getEmail(): String
+    }
+
+    class Book {
+        - isbn: String
+        - title: String
+        - authors: String
+        - description: String
+        - pages: int
+        - coverUrl: String
+        - availableCopies: int
+        + getIsbn(): String
+        + getTitle(): String
+        + getAvailableCopies(): int
+    }
+
+    class Loan {
+        - id: String
+        - userId: String
+        - bookIsbn: String
+        - checkoutDate: String
+        - returnDate: String
+        - status: String
+        + getId(): String
+        + getStatus(): String
+    }
+}
+
+package "network" {
+    interface LibraryApi {
+        + getBooks(): Call<List<Book>>
+        + getBookByIsbn(isbn: String): Call<Book>
+        + checkoutBook(loan: Loan): Call<Void>
+        + returnBook(loanId: String): Call<Void>
+        + getUserLoans(userId: String): Call<List<Loan>>
+    }
+
+    class RetrofitClient {
+        - static instance: RetrofitClient
+        - api: LibraryApi
+        + static getInstance(): RetrofitClient
+        + getApi(): LibraryApi
+    }
+}
+
+package "ui" {
+    class LoginActivity {
+        - mAuth: FirebaseAuth
+        # onCreate(savedInstanceState: Bundle): void
+        - loginUser(): void
+    }
+
+    class BookListActivity {
+        - adapter: BookAdapter
+        # onCreate(savedInstanceState: Bundle): void
+        - fetchBooks(): void
+        - filterBooks(query: String): void
+    }
+
+    class BookDetailsActivity {
+        - currentBook: Book
+        # onCreate(savedInstanceState: Bundle): void
+        - displayBookDetails(): void
+        - handleCheckout(): void
+    }
+
+    class ProfileActivity {
+        - mAuth: FirebaseAuth
+        - adapter: LoanAdapter
+        # onCreate(savedInstanceState: Bundle): void
+        - fetchUserLoans(): void
+        - handleReturnBook(loanId: String): void
+        - handleLogout(): void
+    }
+
+    class DailyBookActivity {
+        - sensorManager: SensorManager
+        - accelerometer: Sensor
+        # onCreate(savedInstanceState: Bundle): void
+        - detectShakeEvent(): void
+        - fetchRandomBook(): void
+    }
+}
+
+package "adapters" {
+    class BookAdapter {
+        - bookList: List<Book>
+        + onCreateViewHolder(): ViewHolder
+        + onBindViewHolder(): void
+    }
+    class LoanAdapter {
+        - loanList: List<Loan>
+        + onCreateViewHolder(): ViewHolder
+        + onBindViewHolder(): void
+    }
+}
+
+' Relações de Integração de Rede
+RetrofitClient --> LibraryApi : inicializa >
+BookListActivity --> RetrofitClient : usa >
+BookDetailsActivity --> RetrofitClient : usa >
+ProfileActivity --> RetrofitClient : usa >
+DailyBookActivity --> RetrofitClient : usa >
+
+' Relações de Interface (Adapters)
+BookListActivity --> BookAdapter : contém >
+ProfileActivity --> LoanAdapter : contém >
+
+' Relações de Dados (Models)
+BookAdapter --> Book : apresenta >
+LoanAdapter --> Loan : apresenta >
+
+' Relação de Autenticação
+LoginActivity ..> User : autentica >
+ProfileActivity ..> User : gere >
+
+@enduml
