@@ -1,0 +1,18 @@
+@startuml
+
+title UC5 - Devolver Livros
+
+actor User
+participant ":System" as System
+
+User -> System: selecionarParaDevolucao(livro)
+activate System
+
+    System -> System: processarDevolucao(livro)
+
+    System --> User: mostrarSucessoDevolucao()
+
+    System --> User: atualizarListaDeRequisitados()
+deactivate System
+
+@enduml

@@ -1,0 +1,21 @@
+@startuml
+'https://plantuml.com/use-case-diagram
+
+title Use Case Diagram
+left to right direction
+
+
+User --> (UC1 - Listar Livros)
+User --> (UC2 - Consultar detalhes de um Livro)
+User --> (UC3 - Procurar Livro)
+User -->(UC4 - Requisitar Livros)
+User --> (UC5 - Devolver Livros)
+User --> (UC6 - Consultar Empréstimos)
+User --> (UC7 - Consultar Historico de Empréstimos)
+User --> (UC8 - Ver o livro do dia)
+User --> (UC9 - Criar conta)
+User --> (UC10 - Entrar na conta)
+User --> (UC11 - Terminar sessão da conta)
+
+
+@enduml

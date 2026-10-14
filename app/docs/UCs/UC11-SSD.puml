@@ -1,0 +1,16 @@
+@startuml
+
+title UC11 - Terminar sessão da conta
+
+actor User
+participant ":System" as System
+
+User -> System: solicitarTerminarSessao()
+activate System
+
+    System -> System: processarLogout()
+
+    System --> User: mostrarEcraLogin()
+deactivate System
+
+@enduml

@@ -1,0 +1,23 @@
+@startuml
+
+title UC1 - Listar Livros
+
+actor User
+participant ":System" as System
+
+
+User -> System: requestBookList()
+activate System
+
+
+    System -> System: fetchBooks()
+
+    System -> System: displayBookList(books)
+
+    System --> User: showBookListScreen()
+deactivate System
+
+@enduml
+
+
+

@@ -1,0 +1,23 @@
+@startuml
+
+title UC8 - Ver o livro do dia
+
+actor User
+participant ":System" as System
+
+User -> System: requestDailyBookScreen()
+activate System
+
+    System -> System: setupDailyBook()
+    System --> User: displayShakeInstructions()
+deactivate System
+
+User -> System: (Abana o dispositivo)
+activate System
+
+    System -> System: detectShake()
+
+    System --> User: displayDailyBook()
+deactivate System
+
+@enduml

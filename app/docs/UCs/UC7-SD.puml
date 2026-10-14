@@ -1,0 +1,57 @@
+@startuml
+
+title UC7 - Consultar Histórico de Empréstimos (SD)
+
+actor User
+participant ":ProfileActivity" as ProfileAct
+participant ":HistoryActivity" as HistAct
+participant ":FirebaseAuth" as Auth
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+participant ":HistoryAdapter" as Adapter
+
+User -> ProfileAct: click(card_history)
+activate ProfileAct
+
+    ProfileAct -> HistAct: startActivity(intent)
+deactivate ProfileAct
+
+HistAct -> HistAct: onCreate()
+activate HistAct
+
+    HistAct -> Auth: getCurrentUser()
+    activate Auth
+    Auth --> HistAct: user
+    deactivate Auth
+
+    HistAct -> HistAct: currentUserId = user.getUid()
+    HistAct -> HistAct: fetchCheckoutHistory()
+    activate HistAct
+
+        HistAct -> Api: (RetrofitClient.getBookApi())
+        activate Api
+
+        Api -> Retrofit: getCheckoutHistory(currentUserId).enqueue()
+        activate Retrofit
+            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
+
+        Retrofit --> HistAct: onResponse(List<LoanResponse>)
+        deactivate Retrofit
+        deactivate Api
+
+        HistAct -> HistAct: historyList.addAll(response.body())
+
+        loop para cada 'loan' na lista
+            HistAct -> HistAct: fetchBookStock(loan.book.isbn, position)
+        end
+
+        HistAct -> Adapter: notifyDataSetChanged()
+        activate Adapter
+        deactivate Adapter
+
+    deactivate HistAct
+
+    HistAct --> User: (Mostra a grelha do histórico)
+deactivate HistAct
+
+@enduml

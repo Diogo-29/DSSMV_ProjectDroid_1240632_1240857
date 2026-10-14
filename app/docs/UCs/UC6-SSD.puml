@@ -1,0 +1,18 @@
+@startuml
+
+title UC6 - Consultar Empréstimos
+
+actor User
+participant ":System" as System
+
+User -> System: consultarEmprestimosAtivos()
+activate System
+
+    System -> System: buscarEmprestimos()
+
+    System -> System: processarListaDeEmprestimos(emprestimos)
+
+    System --> User: mostrarListaDeEmprestimos()
+deactivate System
+
+@enduml

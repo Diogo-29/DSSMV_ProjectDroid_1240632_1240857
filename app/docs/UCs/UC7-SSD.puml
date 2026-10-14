@@ -1,0 +1,18 @@
+@startuml
+
+title UC7 - Consultar Histórico de Empréstimos
+
+actor User
+participant ":System" as System
+
+User -> System: consultarHistoricoEmprestimos()
+activate System
+
+    System -> System: buscarHistorico()
+
+    System -> System: processarListaDoHistorico(historico)
+
+    System --> User: mostrarListaDoHistorico()
+deactivate System
+
+@enduml

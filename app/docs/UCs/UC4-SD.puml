@@ -1,0 +1,60 @@
+@startuml
+
+title UC4 - Requisitar Livros (SD)
+
+actor User
+participant ":BookDetailsActivity" as DetailsAct
+participant ":LoanActivity" as LoanAct
+participant ":FirebaseAuth" as Auth
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+
+User -> DetailsAct: click(btn_requisitar_livro)
+activate DetailsAct
+
+    DetailsAct -> LoanAct: startActivity(intent.putExtra("EXTRA_BOOK", book))
+deactivate DetailsAct
+
+LoanAct -> LoanAct: onCreate(intent)
+activate LoanAct
+    LoanAct -> LoanAct: book = intent.getSerializableExtra("EXTRA_BOOK")
+
+    LoanAct -> LoanAct: checkDisponibilidade(book)
+
+    LoanAct -> LoanAct: populateUi(book)
+
+    LoanAct --> User: (Mostra o ecrã de confirmação)
+
+User -> LoanAct: click(btn_confirmar_dialog)
+
+    LoanAct -> LoanAct: performCheckout()
+    activate LoanAct
+
+        LoanAct -> Auth: getCurrentUser()
+        activate Auth
+        Auth --> LoanAct: user
+        deactivate Auth
+
+        LoanAct -> LoanAct: userId = user.getUid()
+        LoanAct -> LoanAct: bookIdentifier = book.getIsbn() ' ou getBookId()
+
+        LoanAct -> Api: (RetrofitClient.getBookApi())
+        activate Api
+
+        Api -> Retrofit: checkoutBook(LIBRARY_ID, bookIdentifier, userId).enqueue()
+        activate Retrofit
+            Retrofit -> Retrofit: (HTTP POST, ...)
+
+        Retrofit --> LoanAct: onResponse(Success)
+        deactivate Retrofit
+        deactivate Api
+
+        LoanAct -> LoanAct: showToast("Livro requisitado com sucesso!")
+        LoanAct -> LoanAct: finish()
+
+    deactivate LoanAct
+
+LoanAct --> User: (Volta ao BookDetailsActivity)
+deactivate LoanAct
+
+@enduml

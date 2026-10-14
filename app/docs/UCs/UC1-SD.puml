@@ -1,0 +1,43 @@
+@startuml
+title UC1 - Listar Livros (SD)
+
+actor User
+participant ":BookListActivity" as Activity
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+participant ":BookAdapter" as Adapter
+
+User -> Activity: (Abre o ecrã Home)
+activate Activity
+
+    Activity -> Activity: onCreate()
+    activate Activity
+        Activity -> Activity: fetchBooks()
+        activate Activity
+
+            Activity -> Api: (RetrofitClient.getBookApi())
+            activate Api
+
+            Api -> Retrofit: getBooks(LIBRARY_ID).enqueue()
+            activate Retrofit
+
+                Retrofit -> Retrofit: (HTTP GET, Parse JSON)
+            deactivate Api
+
+            Retrofit --> Activity: onResponse(List<BookResponse>)
+            deactivate Retrofit
+
+            Activity -> Activity: (Loop) Converte BookResponse para Book
+
+            Activity -> Adapter: notifyDataSetChanged()
+            activate Adapter
+            deactivate Adapter
+
+        deactivate Activity
+    deactivate Activity
+
+
+    Activity --> User: (Mostra a grelha de livros atualizada)
+deactivate Activity
+
+@enduml

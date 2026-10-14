@@ -1,0 +1,53 @@
+@startuml
+
+title UC6 - Consultar Empréstimos (SD)
+
+actor User
+participant ":ProfileActivity" as ProfileAct
+participant ":LoanListActivity" as ListAct
+participant ":FirebaseAuth" as Auth
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+participant ":LoanAdapter" as Adapter
+
+User -> ProfileAct: click(card_loans)
+activate ProfileAct
+
+    ProfileAct -> ListAct: startActivity(intent)
+deactivate ProfileAct
+
+ListAct -> ListAct: onCreate()
+activate ListAct
+
+    ListAct -> Auth: getCurrentUser()
+    activate Auth
+    Auth --> ListAct: user
+    deactivate Auth
+
+    ListAct -> ListAct: currentUserId = user.getUid()
+    ListAct -> ListAct: fetchCheckedOutBooks()
+    activate ListAct
+
+        ListAct -> Api: (RetrofitClient.getBookApi())
+        activate Api
+
+        Api -> Retrofit: getCheckedOutBooks(currentUserId).enqueue()
+        activate Retrofit
+            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
+
+        Retrofit --> ListAct: onResponse(List<LoanResponse>)
+        deactivate Retrofit
+        deactivate Api
+
+        ListAct -> ListAct: loanList.addAll(response.body())
+
+        ListAct -> Adapter: notifyDataSetChanged()
+        activate Adapter
+        deactivate Adapter
+
+    deactivate ListAct
+
+    ListAct --> User: (Mostra a lista de empréstimos)
+deactivate ListAct
+
+@enduml
