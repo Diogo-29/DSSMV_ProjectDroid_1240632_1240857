@@ -1,0 +1,36 @@
+@startuml
+
+title UC11 - Terminar sessão da conta (SD)
+
+actor User
+participant ":ProfileActivity" as Activity
+participant ":FirebaseAuth" as Auth
+participant ":LoginActivity" as LoginAct
+
+User -> Activity: click(btn_logout)
+activate Activity
+
+    Activity -> Auth: getInstance()
+    activate Auth
+    Auth --> Activity: mAuth
+    deactivate Auth
+
+    Activity -> Auth: signOut()
+    activate Auth
+    Auth --> Activity: (void)
+    deactivate Auth
+
+    Activity -> Activity: intent = new Intent(..., LoginActivity.class)
+    Activity -> Activity: intent.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK)
+
+    Activity -> LoginAct: startActivity(intent)
+    activate LoginAct
+
+    Activity -> Activity: finish()
+
+deactivate Activity
+
+LoginAct --> User: (Mostra o ecrã de Login)
+deactivate LoginAct
+
+@enduml

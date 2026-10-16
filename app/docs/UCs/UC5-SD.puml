@@ -1,0 +1,51 @@
+@startuml
+
+title UC5 - Devolver Livros (SD)
+
+actor User
+participant ":LoanListActivity" as Activity
+participant ":LoanAdapter" as Adapter
+participant ":FirebaseAuth" as Auth
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+
+User -> Adapter: click(btn_return_book)
+activate Adapter
+
+    Adapter -> Activity: onReturnClick(loan, position)
+deactivate Adapter
+
+activate Activity
+
+    Activity -> Auth: getCurrentUser()
+    activate Auth
+    Auth --> Activity: user
+    deactivate Auth
+
+    Activity -> Activity: userId = user.getUid()
+    Activity -> Activity: bookId = loan.bookId
+
+    Activity -> Api: (RetrofitClient.getBookApi())
+    activate Api
+
+    Api -> Retrofit: checkinBook(LIBRARY_ID, bookId, userId).enqueue()
+    activate Retrofit
+        Retrofit -> Retrofit: (HTTP POST, ...)
+
+    Retrofit --> Activity: onResponse(Success)
+    deactivate Retrofit
+    deactivate Api
+
+    Activity -> Activity: showToast("Livro devolvido!")
+
+    Activity -> Activity: loanList.remove(position)
+
+    Activity -> Adapter: notifyItemRemoved(position)
+    activate Adapter
+    deactivate Adapter
+
+deactivate Activity
+
+Activity --> User: (Atualiza a lista de "Requisitados")
+
+@enduml

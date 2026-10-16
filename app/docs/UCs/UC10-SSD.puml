@@ -1,0 +1,27 @@
+@startuml
+
+title UC10 - Entrar na conta
+
+actor User
+participant ":System" as System
+
+User -> System: introduzirDadosLogin(email, password)
+activate System
+
+User -> System: submeterLogin()
+
+    System -> System: validarDados()
+
+    System -> System: autenticarUtilizador(email, password)
+
+    alt login com sucesso
+
+        System --> User: mostrarEcraPrincipal()
+
+    else falha no login
+
+        System --> User: mostrarErro(mensagem)
+    end
+
+deactivate System
+@enduml

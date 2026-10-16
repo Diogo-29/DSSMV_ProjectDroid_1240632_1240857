@@ -1,0 +1,44 @@
+@startuml
+
+title UC9 - Criar conta (SD)
+
+actor User
+participant ":SignupActivity" as Activity
+participant ":FirebaseAuth" as Auth
+
+User -> Activity: click(btn_sign_up)
+activate Activity
+
+    Activity -> Activity: nome = etNome.getText()
+    Activity -> Activity: email = etEmail.getText()
+    Activity -> Activity: password = etPassword.getText()
+
+    Activity -> Activity: registerNewUser()
+    activate Activity
+
+        Activity -> Activity: (validação: TextUtils.isEmpty, password.length() < 6)
+
+        Activity -> Auth: getInstance()
+        activate Auth
+        Auth --> Activity: mAuth
+        deactivate Auth
+
+        Activity -> Auth: createUserWithEmailAndPassword(email, password)
+
+        Auth --> Activity: onComplete(task)
+        activate Activity
+            alt if (task.isSuccessful())
+
+                Activity -> Activity: showToast("Registo com sucesso!")
+                Activity -> ":BookListActivity": startActivity(intent)
+                Activity -> Activity: finish()
+            else
+
+                Activity -> Activity: showToast("Registo falhou: " + task.getException())
+            end
+        deactivate Activity
+
+    deactivate Activity
+deactivate Activity
+
+@enduml

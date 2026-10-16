@@ -1,0 +1,18 @@
+@startuml
+
+title UC2 - Consultar Detalhes de um Livro
+
+actor User
+participant ":System" as System
+
+User -> System: selecionarLivro(isbn)
+activate System
+
+    System -> System: buscarDetalhes(isbn)
+
+    System -> System: preencherDetalhes(livro)
+
+    System --> User: mostrarDetalhesDoLivro()
+deactivate System
+
+@enduml

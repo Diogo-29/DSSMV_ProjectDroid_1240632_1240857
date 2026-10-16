@@ -1,0 +1,87 @@
+@startuml
+
+title UC8 - Ver o livro do dia (SD)
+
+actor User
+participant ":DailyBookActivity" as Activity
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+participant ":SharedPreferences" as Prefs
+participant ":SensorManager" as SensorMgr
+
+User -> Activity: (Navega para o ecrã Shake)
+activate Activity
+    Activity -> Activity: onCreate()
+    activate Activity
+
+        Activity -> Activity: fetchBooks()
+        activate Activity
+            Activity -> Api: (RetrofitClient.getBookApi())
+            Api -> Retrofit: getBooks(LIBRARY_ID).enqueue()
+            activate Retrofit
+            Retrofit --> Activity: onResponse(List<BookResponse>)
+            deactivate Retrofit
+
+            Activity -> Activity: getDailyBook()
+            activate Activity
+
+                Activity -> Prefs: getString(KEY_LAST_DATE)
+                activate Prefs
+                Prefs --> Activity: lastDate
+                deactivate Prefs
+
+                alt if (today != lastDate)
+                    Activity -> Activity: (Escolhe livro aleatório)
+
+                    Activity -> Prefs: edit().putInt(KEY_BOOK_INDEX).apply()
+                    activate Prefs
+                    deactivate Prefs
+                else
+
+                    Activity -> Prefs: getInt(KEY_BOOK_INDEX)
+                    activate Prefs
+                    Prefs --> Activity: bookIndex
+                    deactivate Prefs
+                end
+
+            deactivate Activity
+
+            Activity -> Activity: populateBookCard(dailyBook)
+            activate Activity
+            deactivate Activity
+
+        deactivate Activity
+
+        Activity -> SensorMgr: (getSystemService)
+        Activity -> SensorMgr: registerListener(this, accelerometer)
+        activate SensorMgr
+
+    deactivate Activity
+
+    Activity --> User: (Mostra "Abana o telemóvel...")
+
+User -> Activity: (Abana fisicamente)
+
+    SensorMgr --> Activity: onSensorChanged(event)
+    activate Activity
+
+        Activity -> Activity: (Calcula 'acceleration')
+
+        alt if (acceleration > SHAKE_THRESHOLD)
+
+            Activity -> Activity: revealBookCard()
+            activate Activity
+
+                Activity -> Activity: tvInstructions.setVisibility(GONE)
+                Activity -> Activity: cardBook.setVisibility(VISIBLE)
+
+                Activity -> SensorMgr: unregisterListener(this)
+            deactivate Activity
+        end
+    deactivate Activity
+    deactivate SensorMgr
+
+    Activity --> User: (Mostra o CardView do Livro)
+deactivate Activity
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+
+title UC2 - Consultar Detalhes de um Livro (SD)
+
+actor User
+participant ":BookListActivity" as ListAct
+participant ":BookDetailsActivity" as DetailsAct
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+participant "Glide" as Glide
+
+User -> ListAct: clickBookItem(book)
+activate ListAct
+
+    ListAct -> DetailsAct: startActivity(intent.putExtra("BOOK_ISBN", isbn))
+    deactivate ListAct
+
+DetailsAct -> DetailsAct: onCreate(intent)
+activate DetailsAct
+
+    DetailsAct -> DetailsAct: isbn = intent.getStringExtra("BOOK_ISBN")
+
+    DetailsAct -> DetailsAct: fetchBookDetails(isbn)
+    activate DetailsAct
+
+        DetailsAct -> Api: (RetrofitClient.getBookApi())
+        activate Api
+
+        Api -> Retrofit: getBookByIsbn(LIBRARY_ID, isbn).enqueue()
+        activate Retrofit
+
+            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
+
+        Retrofit --> DetailsAct: onResponse(BookResponse)
+        deactivate Retrofit
+        deactivate Api
+
+        DetailsAct -> DetailsAct: populateUi(currentBook)
+        activate DetailsAct
+            DetailsAct -> Glide: load(currentBook.getCoverUrl())
+            DetailsAct -> DetailsAct: tvTitle.setText(...)
+            DetailsAct -> DetailsAct: tvCopies.setText(...)
+            DetailsAct -> DetailsAct: btnRequisitar.setEnabled(true)
+        deactivate DetailsAct
+
+    deactivate DetailsAct
+
+    DetailsAct --> User: (Mostra os detalhes atualizados)
+deactivate DetailsAct
+
+@enduml

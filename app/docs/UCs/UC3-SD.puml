@@ -1,0 +1,44 @@
+@startuml
+
+title UC3 - Procurar Livro (SD)
+
+actor User
+participant ":BookListActivity" as Activity
+participant ":BookApi" as Api
+participant "Retrofit" as Retrofit
+participant ":BookAdapter" as Adapter
+
+User -> Activity: onTextChanged(query)
+activate Activity
+
+    Activity -> Activity: searchBooks(query)
+    activate Activity
+
+        Activity -> Api: (RetrofitClient.getBookApi())
+        activate Api
+
+        Api -> Retrofit: searchBooks(query, 0).enqueue()
+        activate Retrofit
+
+            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
+
+        Retrofit --> Activity: onResponse(List<BookSearchResponse>)
+        deactivate Retrofit
+        deactivate Api
+
+        loop para cada livro na resposta
+            Activity -> Activity: Converte BookSearchResponse para Book
+
+            Activity -> Activity: fetchBookStock(isbn, position)
+        end
+
+        Activity -> Adapter: notifyDataSetChanged()
+        activate Adapter
+        deactivate Adapter
+
+    deactivate Activity
+
+    Activity --> User: (Mostra a grelha de livros filtrada)
+deactivate Activity
+
+@enduml

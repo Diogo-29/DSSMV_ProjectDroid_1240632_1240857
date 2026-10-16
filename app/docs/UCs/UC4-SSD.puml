@@ -1,0 +1,22 @@
+@startuml
+
+title UC4 - Requisitar Livros
+
+actor User
+participant ":System" as System
+
+User -> System: solicitarRequisicao()
+activate System
+
+    System --> User: mostrarConfirmacao(detalhesDoEmprestimo)
+deactivate System
+
+User -> System: confirmarRequisicao()
+activate System
+
+    System -> System: processarRequisicao()
+
+    System --> User: mostrarSucessoRequisicao()
+deactivate System
+
+@enduml

@@ -1,0 +1,27 @@
+@startuml
+
+title UC9 - Criar conta
+
+actor User
+participant ":System" as System
+
+User -> System: introduzirDadosRegisto(nome, email, password)
+activate System
+
+User -> System: submeterRegisto()
+
+    System -> System: validarDados()
+
+    System -> System: criarConta(email, password)
+
+    alt dados válidos E registo com sucesso
+
+        System --> User: mostrarEcraPrincipal()
+
+    else dados inválidos OU erro de registo
+
+        System --> User: mostrarErro(mensagem)
+    end
+
+deactivate System
+@enduml

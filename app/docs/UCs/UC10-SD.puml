@@ -1,0 +1,43 @@
+@startuml
+
+title UC10 - Entrar na conta (SD)
+
+actor User
+participant ":LoginActivity" as Activity
+participant ":FirebaseAuth" as Auth
+
+User -> Activity: click(btn_sign_up)
+activate Activity
+
+    Activity -> Activity: email = etEmail.getText()
+    Activity -> Activity: password = etPassword.getText()
+
+    Activity -> Activity: loginUser()
+    activate Activity
+
+        Activity -> Activity: (validação: TextUtils.isEmpty)
+
+        Activity -> Auth: getInstance()
+        activate Auth
+        Auth --> Activity: mAuth
+        deactivate Auth
+
+        Activity -> Auth: signInWithEmailAndPassword(email, password)
+
+        Auth --> Activity: onComplete(task)
+        activate Activity
+            alt if (task.isSuccessful())
+
+                Activity -> Activity: showToast("Login com sucesso!")
+                Activity -> ":BookListActivity": startActivity(intent.addFlags(..))
+                Activity -> Activity: finish()
+            else
+
+                Activity -> Activity: showToast("Login falhou: " + task.getException())
+            end
+        deactivate Activity
+
+    deactivate Activity
+deactivate Activity
+
+@enduml
