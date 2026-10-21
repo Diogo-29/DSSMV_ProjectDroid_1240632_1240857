@@ -13,6 +13,8 @@ public class RetrofitClient {
 
     private static final String BASE_URL = "https://projectdroid-8180.restdb.io/rest/";
     private static final String API_KEY = "27eea8b964c30308f397870d44a0591ae91c5";
+    private static final String GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/";
+    private static Retrofit googleRetrofit = null;
     private static Retrofit retrofit = null;
 
     public static Retrofit getRetrofitInstance() {
@@ -35,6 +37,15 @@ public class RetrofitClient {
                     .build();
         }
         return retrofit;
+    }
+    public static GoogleBooksApi getGoogleBooksApi() {
+        if (googleRetrofit == null) {
+            googleRetrofit = new Retrofit.Builder()
+                    .baseUrl(GOOGLE_BOOKS_BASE_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+        }
+        return googleRetrofit.create(GoogleBooksApi.class);
     }
 
     public static BookApi getBookApi() {

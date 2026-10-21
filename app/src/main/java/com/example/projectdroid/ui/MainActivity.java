@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.projectdroid.R;
 import com.example.projectdroid.models.Book;
 import com.example.projectdroid.models.BookResponse;
+import com.example.projectdroid.models.GoogleBooksResponse;
 import com.example.projectdroid.network.RetrofitClient;
 
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
         //preencherBaseDeDados();
 
         fetchBooks();
+        testarPesquisaGoogle();
     }
 
     private void fetchBooks() {
@@ -86,6 +88,29 @@ public class MainActivity extends AppCompatActivity {
             public void onFailure(Call<List<BookResponse>> call, Throwable t) {
                 Log.e("BookList", "Erro: " + t.getMessage());
                 Toast.makeText(MainActivity.this, "Falha de rede: " + t.getMessage(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+    private void testarPesquisaGoogle() {
+
+        String googleApiKey = "AIzaSyBdMs4K1TQSDuNCaquNUZpsbTyzrY6-d0Q";
+
+
+        RetrofitClient.getGoogleBooksApi().searchBooks("Harry Potter", googleApiKey).enqueue(new Callback<GoogleBooksResponse>() {
+            @Override
+            public void onResponse(Call<GoogleBooksResponse> call, Response<GoogleBooksResponse> response) {
+                if (response.isSuccessful() && response.body() != null && response.body().items != null && !response.body().items.isEmpty()) {
+
+                    String tituloEncontrado = response.body().items.get(0).volumeInfo.title;
+                    Log.d("PESQUISA", "✅ Encontrado com sucesso: " + tituloEncontrado);
+                } else {
+                    Log.d("PESQUISA", "Sem resultados ou erro: " + response.code());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<GoogleBooksResponse> call, Throwable t) {
+                Log.e("PESQUISA", "Erro de rede: " + t.getMessage());
             }
         });
     }
