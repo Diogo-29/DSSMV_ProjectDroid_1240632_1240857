@@ -1,4 +1,4 @@
-package com.example.projectdroid;
+package com.example.projectdroid.models;
 
 import java.io.Serializable;
 import java.util.List;

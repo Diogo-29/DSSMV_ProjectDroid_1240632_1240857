@@ -1,4 +1,8 @@
-package com.example.projectdroid;
+package com.example.projectdroid.network;
+import com.example.projectdroid.models.BookResponse;
+import com.example.projectdroid.models.BookSearchResponse;
+import com.example.projectdroid.models.LoanResponse;
+
 import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -8,8 +12,8 @@ import retrofit2.http.Query;
 
 public interface BookApi {
 
-    @GET("library/{libraryId}/book")
-    Call<List<BookResponse>> getBooks(@Path("libraryId") String libraryId);
+    @GET("books")
+    Call<List<BookResponse>> getBooks();
 
     @GET("/v1/search")
     Call<List<BookSearchResponse>> searchBooks(

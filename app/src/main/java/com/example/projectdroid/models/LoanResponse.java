@@ -1,4 +1,4 @@
-package com.example.projectdroid;
+package com.example.projectdroid.models;
 
 public class LoanResponse {
     public String id;
@@ -7,7 +7,7 @@ public class LoanResponse {
     public String userId;
     public String dueDate;
 
-    public BookResponse.BookInfo book;
+    public BookResponse book;
     public int stock = 0;
     public int available = 0;
 }
