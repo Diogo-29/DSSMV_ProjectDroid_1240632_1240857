@@ -10,30 +10,30 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ProjectDroid"
+        android:text="@string/app_name"
         android:textSize="32sp"
         android:textStyle="bold"
         android:textColor="#000000"
         android:layout_marginBottom="48dp" />
 
     <Button
-        android:id="@+id/btnAddBook"
+        android:id="@+id/btnCatalog"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Adicionar livro à minha biblioteca"
+        android:text="Catálogo"
         android:layout_marginBottom="16dp" />
 
     <Button
-        android:id="@+id/btnMyLibrary"
+        android:id="@+id/btnMyLoans"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Minha biblioteca"
+        android:text="Os meus empréstimos"
         android:layout_marginBottom="16dp" />
 
     <Button
         android:id="@+id/btnFavorites"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Meus livros favoritos" />
+        android:text="Favoritos" />
 
 </LinearLayout>

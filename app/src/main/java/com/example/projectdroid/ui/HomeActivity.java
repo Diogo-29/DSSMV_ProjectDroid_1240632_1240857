@@ -3,7 +3,6 @@ package com.example.projectdroid.ui;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -16,23 +15,22 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        Button btnAddBook = findViewById(R.id.btnAddBook);
-        Button btnMyLibrary = findViewById(R.id.btnMyLibrary);
+        Button btnCatalog = findViewById(R.id.btnCatalog);
+        Button btnMyLoans = findViewById(R.id.btnMyLoans);
         Button btnFavorites = findViewById(R.id.btnFavorites);
 
-        btnMyLibrary.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, MainActivity.class);
+        btnCatalog.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, CatalogActivity.class);
             startActivity(intent);
         });
 
-        btnAddBook.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, SearchBookActivity.class);
+        btnMyLoans.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, MyLoansActivity.class);
             startActivity(intent);
         });
-
 
         btnFavorites.setOnClickListener(v -> {
-            android.content.Intent intent = new android.content.Intent(HomeActivity.this, FavoritesActivity.class);
+            Intent intent = new Intent(HomeActivity.this, FavoritesActivity.class);
             startActivity(intent);
         });
     }

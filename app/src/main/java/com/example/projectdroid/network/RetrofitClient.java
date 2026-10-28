@@ -1,54 +1,67 @@
 package com.example.projectdroid.network;
 
-import java.io.IOException;
-
-import okhttp3.Interceptor;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
 
-    private static final String BASE_URL = "https://projectdroid-8180.restdb.io/rest/";
-    private static final String API_KEY = "27eea8b964c30308f397870d44a0591ae91c5";
+    // RestDB: base de dados da app (guardar, alterar e apagar dados)
+    private static final String RESTDB_BASE_URL = "https://projectdroid-8180.restdb.io/rest/";
+    private static final String RESTDB_API_KEY = "27eea8b964c30308f397870d44a0591ae91c5";
+
+    // Google Books: só para ir buscar a informação dos livros
     private static final String GOOGLE_BOOKS_BASE_URL = "https://www.googleapis.com/books/v1/";
-    private static Retrofit googleRetrofit = null;
-    private static Retrofit retrofit = null;
+    private static final String GOOGLE_BOOKS_API_KEY = "AIzaSyBdMs4K1TQSDuNCaquNUZpsbTyzrY6-d0Q";
 
-    public static Retrofit getRetrofitInstance() {
-        if (retrofit == null) {
-            OkHttpClient client = new OkHttpClient.Builder().addInterceptor(new Interceptor() {
-                @Override
-                public Response intercept(Interceptor.Chain chain) throws IOException {
-                    Request newRequest = chain.request().newBuilder()
-                            .addHeader("x-apikey", API_KEY)
-                            .addHeader("Content-Type", "application/json")
-                            .build();
-                    return chain.proceed(newRequest);
-                }
-            }).build();
+    private static Retrofit restDbRetrofit = null;
+    private static Retrofit googleBooksRetrofit = null;
 
-            retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
+    public static RestDbApi getRestDbApi() {
+        if (restDbRetrofit == null) {
+            // O RestDB pede a API key no header "x-apikey" em todos os pedidos
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        Request request = chain.request().newBuilder()
+                                .addHeader("x-apikey", RESTDB_API_KEY)
+                                .addHeader("Content-Type", "application/json")
+                                .build();
+                        return chain.proceed(request);
+                    })
+                    .build();
+
+            restDbRetrofit = new Retrofit.Builder()
+                    .baseUrl(RESTDB_BASE_URL)
                     .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
-        return retrofit;
+        return restDbRetrofit.create(RestDbApi.class);
     }
+
     public static GoogleBooksApi getGoogleBooksApi() {
-        if (googleRetrofit == null) {
-            googleRetrofit = new Retrofit.Builder()
+        if (googleBooksRetrofit == null) {
+            // A Google Books pede a API key no URL, no parâmetro "key"
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .addInterceptor(chain -> {
+                        HttpUrl url = chain.request().url().newBuilder()
+                                .addQueryParameter("key", GOOGLE_BOOKS_API_KEY)
+                                .build();
+                        Request request = chain.request().newBuilder()
+                                .url(url)
+                                .build();
+                        return chain.proceed(request);
+                    })
+                    .build();
+
+            googleBooksRetrofit = new Retrofit.Builder()
                     .baseUrl(GOOGLE_BOOKS_BASE_URL)
+                    .client(client)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
         }
-        return googleRetrofit.create(GoogleBooksApi.class);
-    }
-
-    public static BookApi getBookApi() {
-        return getRetrofitInstance().create(BookApi.class);
+        return googleBooksRetrofit.create(GoogleBooksApi.class);
     }
 }

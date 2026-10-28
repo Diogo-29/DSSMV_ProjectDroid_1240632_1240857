@@ -1,4 +1,4 @@
-package com.example.projectdroid.models; // Verifica se o nome do pacote bate certo
+package com.example.projectdroid.models;
 
 public class BookResponse {
     public String _id;
@@ -6,10 +6,8 @@ public class BookResponse {
     public String isbn;
     public String description;
     public int stock;
-
     public int available;
     public String author;
     public String cover_url;
     public boolean isFavorite;
-
 }

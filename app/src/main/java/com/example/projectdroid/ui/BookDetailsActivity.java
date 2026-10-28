@@ -7,18 +7,32 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.IntentCompat;
 
 import com.bumptech.glide.Glide;
 import com.example.projectdroid.R;
+import com.example.projectdroid.models.Book;
 import com.example.projectdroid.models.BookRequest;
 import com.example.projectdroid.models.BookResponse;
+import com.example.projectdroid.models.Loan;
 import com.example.projectdroid.network.RetrofitClient;
+import com.example.projectdroid.repository.LoanRepository;
+import com.example.projectdroid.repository.RepositoryCallback;
+import com.example.projectdroid.session.UserSession;
 
+import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Call;
 
 public class BookDetailsActivity extends AppCompatActivity {
+
+    // Chave usada para enviar o livro para este ecrã através do Intent
+    public static final String EXTRA_BOOK = "BOOK";
+
+    private final LoanRepository loanRepository = new LoanRepository();
+    private Book book;
+    private TextView textAvailability;
+    private Button btnRequestLoan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,49 +42,91 @@ public class BookDetailsActivity extends AppCompatActivity {
         ImageView imageCover = findViewById(R.id.detailImageCover);
         TextView textTitle = findViewById(R.id.detailTextTitle);
         TextView textAuthor = findViewById(R.id.detailTextAuthor);
-        Button btnAddToLibrary = findViewById(R.id.btnAddToLibrary);
+        textAvailability = findViewById(R.id.detailTextAvailability);
+        btnRequestLoan = findViewById(R.id.btnRequestLoan);
         Button btnAddToFavorites = findViewById(R.id.btnAddToFavorites);
 
-        // Receber os dados enviados pelo ecrã anterior
-        String title = getIntent().getStringExtra("BOOK_TITLE");
-        String author = getIntent().getStringExtra("BOOK_AUTHOR");
-        String coverUrl = getIntent().getStringExtra("BOOK_COVER");
-
-        // Preencher a interface
-        textTitle.setText(title != null ? title : "Sem Título");
-        textAuthor.setText(author != null ? author : "Sem Autor");
-
-        if (coverUrl != null && !coverUrl.isEmpty()) {
-            Glide.with(this).load(coverUrl).into(imageCover);
+        // Receber o livro enviado pelo ecrã anterior
+        book = IntentCompat.getSerializableExtra(getIntent(), EXTRA_BOOK, Book.class);
+        if (book == null) {
+            finish();
+            return;
         }
 
-        // Configurar botões (aqui faremos o POST para o RestDB no futuro)
-        btnAddToLibrary.setOnClickListener(v -> {
-            guardarNoRestDB(title, author, coverUrl, false);
-        });
+        textTitle.setText(book.getTitle() != null ? book.getTitle() : "Sem Título");
+        textAuthor.setText(book.getAuthorsAsText());
 
-        btnAddToFavorites.setOnClickListener(v -> {
-            guardarNoRestDB(title, author, coverUrl, true);
+        if (book.getCoverUrl() != null && !book.getCoverUrl().isEmpty()) {
+            Glide.with(this).load(book.getCoverUrl()).into(imageCover);
+        }
+
+        btnRequestLoan.setOnClickListener(v -> requisitar());
+        btnAddToFavorites.setOnClickListener(v -> guardarFavorito());
+
+        verificarDisponibilidade();
+    }
+
+    // Pergunta ao RestDB se já existe um empréstimo ativo deste livro
+    private void verificarDisponibilidade() {
+        btnRequestLoan.setEnabled(false);
+        textAvailability.setText("A verificar disponibilidade...");
+
+        loanRepository.isBookAvailable(book.getBookId(), new RepositoryCallback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean available) {
+                if (available) {
+                    textAvailability.setText("Disponível");
+                    btnRequestLoan.setEnabled(true);
+                } else {
+                    textAvailability.setText("Indisponível (já está requisitado)");
+                }
+            }
+
+            @Override
+            public void onError(String message) {
+                textAvailability.setText(message);
+            }
         });
     }
-    private void guardarNoRestDB(String title, String author, String coverUrl, boolean isFavorite) {
-        // Preparamos o objeto com os dados para enviar para o RestDB
-        BookRequest novoLivro = new BookRequest(
-                title != null ? title : "Sem Título",
-                author != null ? author : "Sem Autor",
-                "N/A", // ISBN provisório
-                "Adicionado via Google Books",
-                coverUrl != null ? coverUrl : "",
-                1, // stock inicial
-                1, // cópias disponíveis
-                isFavorite
+
+    private void requisitar() {
+        // Desativa o botão para não criar dois empréstimos com dois cliques seguidos
+        btnRequestLoan.setEnabled(false);
+
+        loanRepository.requestLoan(book, UserSession.getUserId(), new RepositoryCallback<Loan>() {
+            @Override
+            public void onSuccess(Loan loan) {
+                Toast.makeText(BookDetailsActivity.this,
+                        "Livro requisitado! Devolver até " + loan.getDueDate(), Toast.LENGTH_LONG).show();
+                finish();
+            }
+
+            @Override
+            public void onError(String message) {
+                Toast.makeText(BookDetailsActivity.this, message, Toast.LENGTH_LONG).show();
+                verificarDisponibilidade();
+            }
+        });
+    }
+
+    // Favoritos: ainda usa a coleção "books" (vai passar para a coleção "favorites")
+    private void guardarFavorito() {
+        BookRequest favorito = new BookRequest(
+                book.getTitle() != null ? book.getTitle() : "Sem Título",
+                book.getAuthorsAsText(),
+                book.getIsbn(),
+                book.getDescription(),
+                book.getCoverUrl() != null ? book.getCoverUrl() : "",
+                1,
+                1,
+                true
         );
-        RetrofitClient.getBookApi().addBook(novoLivro).enqueue(new Callback<BookResponse>() {
+
+        RetrofitClient.getRestDbApi().addBook(favorito).enqueue(new Callback<BookResponse>() {
             @Override
             public void onResponse(Call<BookResponse> call, Response<BookResponse> response) {
                 if (response.isSuccessful()) {
-                    Toast.makeText(BookDetailsActivity.this, "Livro guardado com sucesso!", Toast.LENGTH_SHORT).show();
-                    finish(); // Fecha a página de detalhes e volta à pesquisa
+                    Toast.makeText(BookDetailsActivity.this, "Adicionado aos favoritos!", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(BookDetailsActivity.this, "Erro ao guardar: " + response.code(), Toast.LENGTH_SHORT).show();
                 }

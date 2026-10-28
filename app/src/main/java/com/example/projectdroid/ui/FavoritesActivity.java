@@ -1,9 +1,5 @@
 package com.example.projectdroid.ui;
 
-/*
- * Autor: Tiago Moreira - 1240883
- */
-
 import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -42,7 +38,7 @@ public class FavoritesActivity extends AppCompatActivity {
     }
 
     private void fetchFavoritesFromRestDB() {
-        RetrofitClient.getBookApi().getBooks().enqueue(new Callback<List<BookResponse>>() {
+        RetrofitClient.getRestDbApi().getBooks().enqueue(new Callback<List<BookResponse>>() {
             @Override
             public void onResponse(Call<List<BookResponse>> call, Response<List<BookResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
@@ -53,8 +49,7 @@ public class FavoritesActivity extends AppCompatActivity {
                         List<String> authors = new ArrayList<>();
                         authors.add(res.author != null ? res.author : "Sem Autor");
 
-                        // Constrói o livro exatamente como na MainActivity
-                        Book book = new Book(
+                                                Book book = new Book(
                                 res._id,
                                 res.title,
                                 authors,
@@ -64,7 +59,7 @@ public class FavoritesActivity extends AppCompatActivity {
                                 0,
                                 res.stock,
                                 res.available,
-                                res.isFavorite // O novo parâmetro
+                                res.isFavorite
                         );
 
                         // Só adiciona à lista se o isFavorite for true

@@ -1,5 +1,7 @@
 package com.example.projectdroid.models;
 
+import android.text.TextUtils;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -50,6 +52,14 @@ public class Book implements Serializable {
     public void setNumberOfPages(Integer numberOfPages) { this.numberOfPages = numberOfPages; }
     public void setTotalCopies(int totalCopies) { this.totalCopies = totalCopies; }
     public void setAvailableCopies(int availableCopies) { this.availableCopies = availableCopies; }
+
+    // Junta todos os autores num só texto, separados por vírgula
+    public String getAuthorsAsText() {
+        if (authors == null || authors.isEmpty()) {
+            return "Sem Autor";
+        }
+        return TextUtils.join(", ", authors);
+    }
 
     public boolean isAvailableForLoan() {
         return availableCopies > 0;

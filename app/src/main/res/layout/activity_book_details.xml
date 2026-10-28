@@ -13,7 +13,7 @@
         android:layout_height="220dp"
         android:scaleType="centerCrop"
         android:background="#EEEEEE"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp" />
 
     <TextView
         android:id="@+id/detailTextTitle"
@@ -31,15 +31,25 @@
         android:textSize="16sp"
         android:textAlignment="center"
         android:textColor="#555555"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/detailTextAvailability"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:textColor="#333333"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp" />
 
     <Button
-        android:id="@+id/btnAddToLibrary"
+        android:id="@+id/btnRequestLoan"
         android:layout_width="match_parent"
         android:layout_height="60dp"
-        android:text="Adicionar à minha biblioteca"
-        android:layout_marginBottom="12dp"/>
+        android:text="Requisitar"
+        android:layout_marginBottom="12dp" />
 
     <Button
         android:id="@+id/btnAddToFavorites"

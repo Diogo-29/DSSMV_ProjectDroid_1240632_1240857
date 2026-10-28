@@ -6,6 +6,7 @@ public class GoogleBooksResponse {
     public List<Item> items;
 
     public static class Item {
+        public String id;
         public VolumeInfo volumeInfo;
     }
 
@@ -13,6 +14,7 @@ public class GoogleBooksResponse {
         public String title;
         public List<String> authors;
         public String description;
+        public Integer pageCount;
         public ImageLinks imageLinks;
         public List<IndustryIdentifier> industryIdentifiers;
     }
