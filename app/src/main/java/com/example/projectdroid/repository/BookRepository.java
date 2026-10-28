@@ -8,27 +8,19 @@ import com.example.projectdroid.network.RetrofitClient;
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 // Tudo o que tem a ver com ir buscar livros à Google Books
 public class BookRepository {
 
     private final GoogleBooksApi api = RetrofitClient.getGoogleBooksApi();
 
     public void searchBooks(String query, RepositoryCallback<List<Book>> callback) {
-        api.searchBooks(query).enqueue(new Callback<GoogleBooksResponse>() {
+        api.searchBooks(query).enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
             @Override
-            public void onResponse(Call<GoogleBooksResponse> call, Response<GoogleBooksResponse> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError("Erro: " + response.code());
-                    return;
-                }
-
+            public void onSuccess(GoogleBooksResponse response) {
                 List<Book> books = new ArrayList<>();
-                if (response.body().items != null) {
-                    for (GoogleBooksResponse.Item item : response.body().items) {
+                // Quando não há resultados, a Google não envia a lista "items"
+                if (response != null && response.items != null) {
+                    for (GoogleBooksResponse.Item item : response.items) {
                         if (item.volumeInfo != null) {
                             books.add(converterParaBook(item));
                         }
@@ -38,10 +30,10 @@ public class BookRepository {
             }
 
             @Override
-            public void onFailure(Call<GoogleBooksResponse> call, Throwable t) {
-                callback.onError("Erro de rede: " + t.getMessage());
+            public void onError(String message) {
+                callback.onError(message);
             }
-        });
+        }));
     }
 
     // Converte um resultado da Google Books num Book da nossa app
@@ -61,7 +53,7 @@ public class BookRepository {
         }
 
         return new Book(item.id, info.title, authors, obterIsbn(info), info.description,
-                coverUrl, info.pageCount, 0, 0, false);
+                coverUrl, info.pageCount);
     }
 
     // A Google devolve vários identificadores: usamos o ISBN-13 e, se não houver, o ISBN-10

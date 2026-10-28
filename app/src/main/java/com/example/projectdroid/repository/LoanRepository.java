@@ -9,10 +9,6 @@ import com.google.gson.JsonObject;
 
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 // Tudo o que tem a ver com empréstimos: as regras da biblioteca e os pedidos ao RestDB
 public class LoanRepository {
 
@@ -27,44 +23,26 @@ public class LoanRepository {
         query.addProperty("googleBookId", googleBookId);
         query.addProperty("status", Loan.STATUS_ACTIVE);
 
-        api.getLoans(query.toString()).enqueue(new Callback<List<Loan>>() {
+        api.getLoans(query.toString()).enqueue(new ApiCallback<>(new RepositoryCallback<List<Loan>>() {
             @Override
-            public void onResponse(Call<List<Loan>> call, Response<List<Loan>> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError("Erro: " + response.code());
-                    return;
-                }
-                callback.onSuccess(response.body().isEmpty());
+            public void onSuccess(List<Loan> loans) {
+                callback.onSuccess(loans.isEmpty());
             }
 
             @Override
-            public void onFailure(Call<List<Loan>> call, Throwable t) {
-                callback.onError("Erro de rede: " + t.getMessage());
+            public void onError(String message) {
+                callback.onError(message);
             }
-        });
+        }));
     }
 
-    // Empréstimos ativos de um utilizador
-    public void getActiveLoans(String userId, RepositoryCallback<List<Loan>> callback) {
+    // Empréstimos de um utilizador com um estado: ATIVO (atuais) ou DEVOLVIDO (histórico)
+    public void getUserLoans(String userId, String status, RepositoryCallback<List<Loan>> callback) {
         JsonObject query = new JsonObject();
         query.addProperty("userId", userId);
-        query.addProperty("status", Loan.STATUS_ACTIVE);
+        query.addProperty("status", status);
 
-        api.getLoans(query.toString()).enqueue(new Callback<List<Loan>>() {
-            @Override
-            public void onResponse(Call<List<Loan>> call, Response<List<Loan>> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError("Erro: " + response.code());
-                    return;
-                }
-                callback.onSuccess(response.body());
-            }
-
-            @Override
-            public void onFailure(Call<List<Loan>> call, Throwable t) {
-                callback.onError("Erro de rede: " + t.getMessage());
-            }
-        });
+        api.getLoans(query.toString()).enqueue(new ApiCallback<>(callback));
     }
 
     // Requisitar um livro:
@@ -75,16 +53,11 @@ public class LoanRepository {
         JsonObject query = new JsonObject();
         query.addProperty("status", Loan.STATUS_ACTIVE);
 
-        api.getLoans(query.toString()).enqueue(new Callback<List<Loan>>() {
+        api.getLoans(query.toString()).enqueue(new ApiCallback<>(new RepositoryCallback<List<Loan>>() {
             @Override
-            public void onResponse(Call<List<Loan>> call, Response<List<Loan>> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError("Erro: " + response.code());
-                    return;
-                }
-
+            public void onSuccess(List<Loan> activeLoans) {
                 int userActiveLoans = 0;
-                for (Loan loan : response.body()) {
+                for (Loan loan : activeLoans) {
                     if (book.getBookId().equals(loan.getGoogleBookId())) {
                         callback.onError("Este livro já está requisitado.");
                         return;
@@ -104,37 +77,48 @@ public class LoanRepository {
             }
 
             @Override
-            public void onFailure(Call<List<Loan>> call, Throwable t) {
-                callback.onError("Erro de rede: " + t.getMessage());
+            public void onError(String message) {
+                callback.onError(message);
             }
-        });
+        }));
     }
 
     private void createLoan(Book book, String userId, RepositoryCallback<Loan> callback) {
+        String today = DateUtils.today();
+
         Loan newLoan = new Loan(
                 userId,
                 book.getBookId(),
                 book.getTitle(),
                 book.getAuthorsAsText(),
                 book.getCoverUrl(),
-                DateUtils.today(),
-                DateUtils.daysFromToday(LOAN_DAYS)
+                today,
+                DateUtils.addDays(today, LOAN_DAYS)
         );
 
-        api.createLoan(newLoan).enqueue(new Callback<Loan>() {
-            @Override
-            public void onResponse(Call<Loan> call, Response<Loan> response) {
-                if (!response.isSuccessful() || response.body() == null) {
-                    callback.onError("Erro ao requisitar: " + response.code());
-                    return;
-                }
-                callback.onSuccess(response.body());
-            }
+        api.createLoan(newLoan).enqueue(new ApiCallback<>(callback));
+    }
 
-            @Override
-            public void onFailure(Call<Loan> call, Throwable t) {
-                callback.onError("Erro de rede: " + t.getMessage());
-            }
-        });
+    // Devolver: o empréstimo não é apagado; passa a DEVOLVIDO e fica no histórico (PATCH)
+    public void returnLoan(Loan loan, RepositoryCallback<Loan> callback) {
+        Loan changes = new Loan();
+        changes.setStatus(Loan.STATUS_RETURNED);
+        changes.setReturnDate(DateUtils.today());
+
+        api.updateLoan(loan.getId(), changes).enqueue(new ApiCallback<>(callback));
+    }
+
+    // Renovar: mais 14 dias a contar da data limite atual (PATCH).
+    // Um empréstimo em atraso não pode ser renovado, tem de ser devolvido.
+    public void renewLoan(Loan loan, RepositoryCallback<Loan> callback) {
+        if (DateUtils.isBeforeToday(loan.getDueDate())) {
+            callback.onError("Este empréstimo está em atraso. Tens de devolver o livro.");
+            return;
+        }
+
+        Loan changes = new Loan();
+        changes.setDueDate(DateUtils.addDays(loan.getDueDate(), LOAN_DAYS));
+
+        api.updateLoan(loan.getId(), changes).enqueue(new ApiCallback<>(callback));
     }
 }

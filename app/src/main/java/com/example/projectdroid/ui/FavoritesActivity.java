@@ -1,27 +1,28 @@
 package com.example.projectdroid.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.projectdroid.R;
 import com.example.projectdroid.models.Book;
-import com.example.projectdroid.models.BookResponse;
-import com.example.projectdroid.network.RetrofitClient;
+import com.example.projectdroid.models.Favorite;
+import com.example.projectdroid.repository.FavoriteRepository;
+import com.example.projectdroid.repository.RepositoryCallback;
+import com.example.projectdroid.session.UserSession;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-
 public class FavoritesActivity extends AppCompatActivity {
 
+    private final FavoriteRepository favoriteRepository = new FavoriteRepository();
+    private final List<Book> favoriteBooks = new ArrayList<>();
     private BookAdapter adapter;
-    private final List<Book> favoriteBooksList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,49 +32,43 @@ public class FavoritesActivity extends AppCompatActivity {
         RecyclerView recyclerFavorites = findViewById(R.id.recyclerFavorites);
         recyclerFavorites.setLayoutManager(new LinearLayoutManager(this));
 
-        adapter = new BookAdapter(favoriteBooksList);
+        // Os favoritos são mostrados como livros, por isso reutilizamos o BookAdapter
+        adapter = new BookAdapter(favoriteBooks);
         recyclerFavorites.setAdapter(adapter);
 
-        fetchFavoritesFromRestDB();
+        // Ao clicar, abre os detalhes, onde se pode requisitar ou remover dos favoritos
+        adapter.setOnItemClickListener(book -> {
+            Intent intent = new Intent(FavoritesActivity.this, BookDetailsActivity.class);
+            intent.putExtra(BookDetailsActivity.EXTRA_BOOK, book);
+            startActivity(intent);
+        });
     }
 
-    private void fetchFavoritesFromRestDB() {
-        RetrofitClient.getRestDbApi().getBooks().enqueue(new Callback<List<BookResponse>>() {
+    // Recarrega ao voltar dos detalhes, caso o livro tenha sido removido dos favoritos
+    @Override
+    protected void onResume() {
+        super.onResume();
+        carregarFavoritos();
+    }
+
+    private void carregarFavoritos() {
+        favoriteRepository.getFavorites(UserSession.getUserId(), new RepositoryCallback<List<Favorite>>() {
             @Override
-            public void onResponse(Call<List<BookResponse>> call, Response<List<BookResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    favoriteBooksList.clear();
+            public void onSuccess(List<Favorite> favorites) {
+                favoriteBooks.clear();
+                for (Favorite favorite : favorites) {
+                    favoriteBooks.add(favorite.toBook());
+                }
+                adapter.notifyDataSetChanged();
 
-                    for (BookResponse res : response.body()) {
-
-                        List<String> authors = new ArrayList<>();
-                        authors.add(res.author != null ? res.author : "Sem Autor");
-
-                                                Book book = new Book(
-                                res._id,
-                                res.title,
-                                authors,
-                                res.isbn,
-                                res.description,
-                                res.cover_url,
-                                0,
-                                res.stock,
-                                res.available,
-                                res.isFavorite
-                        );
-
-                        // Só adiciona à lista se o isFavorite for true
-                        if (book.isFavorite()) {
-                            favoriteBooksList.add(book);
-                        }
-                    }
-                    adapter.notifyDataSetChanged();
+                if (favoriteBooks.isEmpty()) {
+                    Toast.makeText(FavoritesActivity.this, "Ainda não tens favoritos.", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<BookResponse>> call, Throwable t) {
-                Toast.makeText(FavoritesActivity.this, "Erro de rede: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onError(String message) {
+                Toast.makeText(FavoritesActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
     }

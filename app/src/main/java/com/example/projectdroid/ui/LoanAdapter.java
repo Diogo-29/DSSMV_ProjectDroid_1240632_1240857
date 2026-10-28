@@ -12,15 +12,25 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.projectdroid.R;
 import com.example.projectdroid.models.Loan;
+import com.example.projectdroid.utils.DateUtils;
 
 import java.util.List;
 
 public class LoanAdapter extends RecyclerView.Adapter<LoanAdapter.LoanViewHolder> {
 
     private final List<Loan> loanList;
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(Loan loan);
+    }
 
     public LoanAdapter(List<Loan> loanList) {
         this.loanList = loanList;
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
     }
 
     @NonNull
@@ -36,13 +46,28 @@ public class LoanAdapter extends RecyclerView.Adapter<LoanAdapter.LoanViewHolder
 
         holder.textTitle.setText(loan.getTitle());
         holder.textAuthor.setText(loan.getAuthors());
-        holder.textDueDate.setText("Devolver até " + loan.getDueDate());
+
+        if (loan.isActive()) {
+            String text = "Devolver até " + loan.getDueDate();
+            if (DateUtils.isBeforeToday(loan.getDueDate())) {
+                text += " (em atraso)";
+            }
+            holder.textDueDate.setText(text);
+        } else {
+            holder.textDueDate.setText("Devolvido em " + loan.getReturnDate());
+        }
 
         if (loan.getCoverUrl() != null && !loan.getCoverUrl().isEmpty()) {
             Glide.with(holder.itemView.getContext()).load(loan.getCoverUrl()).into(holder.imageCover);
         } else {
             holder.imageCover.setImageDrawable(null);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(loan);
+            }
+        });
     }
 
     @Override
