@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal"
+    android:background="#FFFFFF">
+
+    <ImageView
+        android:id="@+id/detailImageCover"
+        android:layout_width="150dp"
+        android:layout_height="220dp"
+        android:scaleType="centerCrop"
+        android:background="#EEEEEE"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/detailTextTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textAlignment="center"
+        android:textColor="#000000" />
+
+    <TextView
+        android:id="@+id/detailTextAuthor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:textAlignment="center"
+        android:textColor="#555555"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btnAddToLibrary"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Adicionar à minha biblioteca"
+        android:layout_marginBottom="12dp"/>
+
+    <Button
+        android:id="@+id/btnAddToFavorites"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Adicionar aos favoritos" />
+
+</LinearLayout>

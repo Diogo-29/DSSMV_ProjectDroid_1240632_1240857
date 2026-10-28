@@ -75,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
                             br.cover_url,
                             0,
                             br.stock,
-                            br.available
+                            br.available,
+                            br.isFavorite
                     );
 
                     bookList.add(book);

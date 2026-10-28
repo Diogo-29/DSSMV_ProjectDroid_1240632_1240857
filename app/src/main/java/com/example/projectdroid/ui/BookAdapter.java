@@ -19,6 +19,17 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
 
     private final List<Book> bookList;
 
+
+    private OnItemClickListener listener;
+
+    public interface OnItemClickListener {
+        void onItemClick(Book book);
+    }
+
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
     public BookAdapter(List<Book> bookList) {
         this.bookList = bookList;
     }
@@ -58,6 +69,12 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
                 holder.imageCover.setImageDrawable(null); // Limpa se não houver imagem
             }
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemClick(book);
+            }
+        });
     }
 
     @Override
@@ -73,8 +90,6 @@ public class BookAdapter extends RecyclerView.Adapter<BookAdapter.BookViewHolder
         public BookViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            // ATENÇÃO: Confirma se estes IDs ('textTitle', 'textAuthor', 'imageCover')
-            // batem certo com os IDs que tens no teu ficheiro de layout 'item_book.xml'
             textTitle = itemView.findViewById(R.id.textTitle);
             textAuthor = itemView.findViewById(R.id.textAuthor);
             imageCover = itemView.findViewById(R.id.imageCover);

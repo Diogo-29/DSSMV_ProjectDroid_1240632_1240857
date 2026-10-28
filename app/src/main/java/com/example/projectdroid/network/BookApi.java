@@ -14,6 +14,9 @@ public interface BookApi {
 
     @GET("books")
     Call<List<BookResponse>> getBooks();
+    // Verifica qual é o caminho que tens no teu @GET (se é "books" ou "rest/books") e usa o mesmo aqui.
+    @retrofit2.http.POST("books")
+    retrofit2.Call<BookResponse> addBook(@retrofit2.http.Body com.example.projectdroid.models.BookRequest newBook);
 
     @GET("/v1/search")
     Call<List<BookSearchResponse>> searchBooks(

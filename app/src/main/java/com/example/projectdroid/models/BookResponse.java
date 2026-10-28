@@ -10,5 +10,6 @@ public class BookResponse {
     public int available;
     public String author;
     public String cover_url;
+    public boolean isFavorite;
 
 }

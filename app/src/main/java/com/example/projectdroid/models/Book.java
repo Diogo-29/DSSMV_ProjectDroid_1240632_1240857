@@ -14,11 +14,10 @@ public class Book implements Serializable {
     private Integer numberOfPages;
     private int totalCopies;
     private int availableCopies;
+    private boolean isFavorite;
 
-    public Book() {}
 
-    public Book(String bookId, String title, List<String> authors, String isbn, String description, String coverUrl,
-                Integer numberOfPages, int totalCopies, int availableCopies) {
+    public Book(String bookId, String title, List<String> authors, String isbn, String description, String coverUrl, Integer numberOfPages, int totalCopies, int availableCopies, boolean isFavorite) {
         this.bookId = bookId;
         this.title = title;
         this.authors = authors;
@@ -28,6 +27,7 @@ public class Book implements Serializable {
         this.numberOfPages = numberOfPages;
         this.totalCopies = totalCopies;
         this.availableCopies = availableCopies;
+        this.isFavorite = isFavorite;
     }
 
     public String getBookId() { return bookId; }
@@ -53,5 +53,12 @@ public class Book implements Serializable {
 
     public boolean isAvailableForLoan() {
         return availableCopies > 0;
+    }
+    public boolean isFavorite() {
+        return isFavorite;
+    }
+
+    public void setFavorite(boolean favorite) {
+        isFavorite = favorite;
     }
 }
