@@ -24,8 +24,12 @@ package "ui" {
         - bookRepository: BookRepository
         - handler: Handler
         - lastSearchId: int
+        - nextStartIndex: int
+        - isLoading: boolean
+        - hasMore: boolean
         - pesquisarTextoEscrito(): void
         - pesquisar(query: String): void
+        - carregarPagina(): void
     }
     class BookDetailsActivity {
         - book: Book
@@ -76,7 +80,7 @@ package "repository" {
         + getCurrentUser(): FirebaseUser
     }
     class BookRepository {
-        + searchBooks(query, callback): void
+        + searchBooks(query, startIndex, callback): void
         + getBookById(bookId, callback): void
         + getDailyBook(callback): void
     }
@@ -104,7 +108,7 @@ package "network" {
         + {static} getRestDbApi(): RestDbApi
     }
     interface GoogleBooksApi {
-        + searchBooks(q): Call
+        + searchBooks(q, startIndex, maxResults): Call
         + searchBooks(q, maxResults): Call
         + getBook(id): Call
     }

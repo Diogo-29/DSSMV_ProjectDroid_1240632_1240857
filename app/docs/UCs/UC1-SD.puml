@@ -13,12 +13,13 @@ U -> A: abre o Catálogo
 activate A
 A -> A: onCreate()
 A -> A: pesquisar("subject:fiction")
-A -> A: searchId = ++lastSearchId\nprogressSearch VISIBLE
-A -> R: searchBooks(query, callback)
+A -> A: lastSearchId++; nextStartIndex = 0
+A -> A: carregarPagina()\nisLoading = true; progressSearch VISIBLE
+A -> R: searchBooks(query, 0, callback)
 activate R
-R -> API: searchBooks(query).enqueue()
+R -> API: searchBooks(query, 0, 20).enqueue()
 activate API
-API -> GB: GET /volumes?q=subject:fiction&key=...
+API -> GB: GET /volumes?q=subject:fiction&startIndex=0&maxResults=20
 GB --> API: 200 OK (JSON)
 API --> R: onResponse(GoogleBooksResponse)
 deactivate API
@@ -26,7 +27,31 @@ R -> R: converterLista(response)
 R --> A: onSuccess(List<Book>)
 deactivate R
 A -> A: books.clear(); books.addAll(result)
-A -> AD: notifyDataSetChanged()
+A -> AD: notifyItemRangeInserted(0, n)
+A -> A: nextStartIndex += 20
 A --> U: mostra a lista de livros
 deactivate A
+
+loop scroll infinito: enquanto houver páginas
+  U -> A: faz scroll para baixo
+  activate A
+  A -> A: onScrolled(): último visível >= tamanho - 5
+  opt !isLoading e hasMore
+    A -> A: carregarPagina()\nisLoading = true; progressMore VISIBLE
+    A -> R: searchBooks(query, nextStartIndex, callback)
+    activate R
+    R -> GB: GET /volumes?q=...&startIndex=20, 40, ...&maxResults=20
+    GB --> R: 200 OK (JSON)
+    R --> A: onSuccess(List<Book>)
+    deactivate R
+    alt página vazia
+      A -> A: hasMore = false (não há mais livros)
+    else página com livros
+      A -> A: acrescenta só os livros novos\n(loadedIds evita repetidos)
+      A -> AD: notifyItemRangeInserted(posição, n)
+      A -> A: nextStartIndex += 20
+    end
+  end
+  deactivate A
+end
 @enduml

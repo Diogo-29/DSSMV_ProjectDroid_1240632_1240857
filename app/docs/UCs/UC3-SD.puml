@@ -24,15 +24,15 @@ alt texto com 3 ou mais letras
 else texto vazio
   A -> A: pesquisar("subject:fiction")
 end
-A -> A: searchId = ++lastSearchId
-A -> R: searchBooks(texto, callback)
+A -> A: lastSearchId++; nextStartIndex = 0
+A -> R: searchBooks(texto, 0, callback)
 activate R
-R -> GB: GET /volumes?q=<texto>
+R -> GB: GET /volumes?q=<texto>&startIndex=0&maxResults=20
 GB --> R: 200 OK (JSON)
 R --> A: onSuccess(List<Book>)
 deactivate R
 alt searchId == lastSearchId
-  A -> A: atualiza a lista\n(textEmpty visível se vazia)
+  A -> A: substitui a lista\n(textEmpty visível se vazia)\nas páginas seguintes carregam com o scroll (UC1)
   A --> U: mostra os resultados
 else resposta de uma pesquisa antiga
   A -> A: ignora a resposta

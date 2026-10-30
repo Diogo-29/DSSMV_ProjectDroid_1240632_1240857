@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -66,10 +67,10 @@ public class BookRepositoryTest {
         GoogleBooksResponse.Item item = item("id1", "Os Maias", Arrays.asList("Eça de Queirós"));
         item.volumeInfo.pageCount = 600;
         item.volumeInfo.description = "Romance";
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.sucesso(response(item)));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response(item)));
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("maias", callback);
+        repository.searchBooks("maias", 0, callback);
 
         assertEquals(1, callback.result.size());
         Book book = callback.result.get(0);
@@ -83,10 +84,10 @@ public class BookRepositoryTest {
     @Test
     public void semResultadosDevolveListaVazia() {
         // Quando não há resultados, a Google não envia a lista "items"
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.sucesso(new GoogleBooksResponse()));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(new GoogleBooksResponse()));
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("xqzxqzxq", callback);
+        repository.searchBooks("xqzxqzxq", 0, callback);
 
         assertNotNull(callback.result);
         assertTrue(callback.result.isEmpty());
@@ -94,10 +95,10 @@ public class BookRepositoryTest {
 
     @Test
     public void livroSemAutoresFicaComAutorDesconhecido() {
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.sucesso(response(item("id1", "Livro", null))));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response(item("id1", "Livro", null))));
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("livro", callback);
+        repository.searchBooks("livro", 0, callback);
 
         assertEquals("Autor Desconhecido", callback.result.get(0).getAuthorsAsText());
     }
@@ -107,10 +108,10 @@ public class BookRepositoryTest {
         GoogleBooksResponse.Item item = item("id1", "Livro", null);
         item.volumeInfo.imageLinks = new GoogleBooksResponse.ImageLinks();
         item.volumeInfo.imageLinks.thumbnail = "http://books.google.com/capa.jpg";
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.sucesso(response(item)));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response(item)));
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("livro", callback);
+        repository.searchBooks("livro", 0, callback);
 
         assertEquals("https://books.google.com/capa.jpg", callback.result.get(0).getCoverUrl());
     }
@@ -121,10 +122,10 @@ public class BookRepositoryTest {
         item.volumeInfo.industryIdentifiers = Arrays.asList(
                 identifier("ISBN_10", "1234567890"),
                 identifier("ISBN_13", "9781234567897"));
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.sucesso(response(item)));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response(item)));
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("livro", callback);
+        repository.searchBooks("livro", 0, callback);
 
         assertEquals("9781234567897", callback.result.get(0).getIsbn());
     }
@@ -133,20 +134,31 @@ public class BookRepositoryTest {
     public void usaIsbn10QuandoNaoHaIsbn13() {
         GoogleBooksResponse.Item item = item("id1", "Livro", null);
         item.volumeInfo.industryIdentifiers = Arrays.asList(identifier("ISBN_10", "1234567890"));
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.sucesso(response(item)));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response(item)));
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("livro", callback);
+        repository.searchBooks("livro", 0, callback);
 
         assertEquals("1234567890", callback.result.get(0).getIsbn());
     }
 
     @Test
+    public void paginasSeguintesPedemOStartIndexCerto() {
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response()));
+
+        repository.searchBooks("harry", 0, new TestCallback<>());
+        repository.searchBooks("harry", BookRepository.PAGE_SIZE, new TestCallback<>());
+
+        verify(api).searchBooks(eq("harry"), eq(0), eq(BookRepository.PAGE_SIZE));
+        verify(api).searchBooks(eq("harry"), eq(BookRepository.PAGE_SIZE), eq(BookRepository.PAGE_SIZE));
+    }
+
+    @Test
     public void semRedeDevolveErro() {
-        when(api.searchBooks(anyString())).thenReturn(FakeCall.semRede());
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.semRede());
 
         TestCallback<List<Book>> callback = new TestCallback<>();
-        repository.searchBooks("livro", callback);
+        repository.searchBooks("livro", 0, callback);
 
         assertTrue(callback.error.startsWith("Erro de rede"));
         assertNull(callback.result);

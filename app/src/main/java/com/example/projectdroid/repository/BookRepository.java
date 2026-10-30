@@ -20,6 +20,9 @@ public class BookRepository {
     };
     private static final int DAILY_BOOK_RESULTS = 20;
 
+    // Quantos livros pedimos à Google de cada vez no catálogo
+    public static final int PAGE_SIZE = 20;
+
     private final GoogleBooksApi api;
 
     public BookRepository() {
@@ -31,8 +34,11 @@ public class BookRepository {
         this.api = api;
     }
 
-    public void searchBooks(String query, RepositoryCallback<List<Book>> callback) {
-        api.searchBooks(query).enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
+    // Pesquisa uma página de resultados. startIndex = 0 é a primeira página,
+    // PAGE_SIZE a segunda, 2 * PAGE_SIZE a terceira, etc.
+    // Uma lista vazia significa que não há mais livros para esta pesquisa.
+    public void searchBooks(String query, int startIndex, RepositoryCallback<List<Book>> callback) {
+        api.searchBooks(query, startIndex, PAGE_SIZE).enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
             @Override
             public void onSuccess(GoogleBooksResponse response) {
                 callback.onSuccess(converterLista(response));

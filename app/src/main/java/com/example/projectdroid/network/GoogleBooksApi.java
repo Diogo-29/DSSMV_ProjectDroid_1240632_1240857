@@ -9,8 +9,12 @@ import retrofit2.http.Query;
 
 public interface GoogleBooksApi {
 
+    // Pesquisa paginada: startIndex = posição do primeiro resultado (0, 20, 40...),
+    // maxResults = quantos resultados por página (a Google aceita até 40)
     @GET("volumes")
-    Call<GoogleBooksResponse> searchBooks(@Query("q") String query);
+    Call<GoogleBooksResponse> searchBooks(@Query("q") String query,
+                                          @Query("startIndex") int startIndex,
+                                          @Query("maxResults") int maxResults);
 
     // Igual à de cima, mas escolhendo quantos resultados queremos (a Google aceita até 40)
     @GET("volumes")
