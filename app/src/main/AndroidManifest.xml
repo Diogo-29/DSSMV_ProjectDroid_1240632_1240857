@@ -13,8 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ProjectDroid">
+        <!-- O login é o primeiro ecrã da app -->
         <activity
-            android:name=".ui.HomeActivity"
+            android:name=".ui.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,6 +23,12 @@
 
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.SignupActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.HomeActivity"
+            android:exported="false" />
         <activity
             android:name=".ui.MyLoansActivity"
             android:exported="false" />
@@ -33,6 +40,9 @@
             android:exported="false" />
         <activity
             android:name=".ui.FavoritesActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.DailyBookActivity"
             android:exported="false" />
     </application>
 

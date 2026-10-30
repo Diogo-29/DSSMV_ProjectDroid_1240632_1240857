@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#FFFFFF">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Livro do dia"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_marginBottom="32dp" />
+
+    <!-- Visível até o utilizador abanar o telemóvel -->
+    <TextView
+        android:id="@+id/textInstructions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="Abana o telemóvel para descobrir o livro do dia!"
+        android:textSize="20sp"
+        android:textColor="#555555" />
+
+    <!-- Só aparece se o telemóvel não tiver acelerómetro -->
+    <Button
+        android:id="@+id/btnReveal"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginTop="24dp"
+        android:text="Revelar livro do dia"
+        android:visibility="gone" />
+
+    <!-- Escondido até ao abanão -->
+    <LinearLayout
+        android:id="@+id/layoutDailyBook"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/dailyImageCover"
+            android:layout_width="140dp"
+            android:layout_height="210dp"
+            android:scaleType="centerCrop"
+            android:background="#DDDDDD"
+            android:contentDescription="Capa do livro do dia"
+            android:layout_marginBottom="24dp" />
+
+        <TextView
+            android:id="@+id/dailyTextTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/dailyTextAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="16sp"
+            android:textColor="#555555"
+            android:layout_marginBottom="32dp" />
+
+        <Button
+            android:id="@+id/btnDailyDetails"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Ver detalhes" />
+    </LinearLayout>
+
+</LinearLayout>

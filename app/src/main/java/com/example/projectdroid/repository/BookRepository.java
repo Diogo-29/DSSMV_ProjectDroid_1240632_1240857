@@ -4,12 +4,21 @@ import com.example.projectdroid.models.Book;
 import com.example.projectdroid.models.GoogleBooksResponse;
 import com.example.projectdroid.network.GoogleBooksApi;
 import com.example.projectdroid.network.RetrofitClient;
+import com.example.projectdroid.utils.DateUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 // Tudo o que tem a ver com ir buscar livros à Google Books
 public class BookRepository {
+
+    // Temas de onde sai o livro do dia
+    private static final String[] DAILY_BOOK_SUBJECTS = {
+            "fiction", "fantasy", "mystery", "science fiction", "romance",
+            "history", "biography", "adventure", "poetry", "classics"
+    };
+    private static final int DAILY_BOOK_RESULTS = 20;
 
     private final GoogleBooksApi api = RetrofitClient.getGoogleBooksApi();
 
@@ -17,16 +26,7 @@ public class BookRepository {
         api.searchBooks(query).enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
             @Override
             public void onSuccess(GoogleBooksResponse response) {
-                List<Book> books = new ArrayList<>();
-                // Quando não há resultados, a Google não envia a lista "items"
-                if (response != null && response.items != null) {
-                    for (GoogleBooksResponse.Item item : response.items) {
-                        if (item.volumeInfo != null) {
-                            books.add(converterParaBook(item));
-                        }
-                    }
-                }
-                callback.onSuccess(books);
+                callback.onSuccess(converterLista(response));
             }
 
             @Override
@@ -34,6 +34,53 @@ public class BookRepository {
                 callback.onError(message);
             }
         }));
+    }
+
+    // Livro do dia (UC8): igual para todos os utilizadores durante o dia todo.
+    // A data de hoje (ex.: 20261030) é usada como "semente" do Random.
+    // Com a mesma semente, o Random dá sempre os mesmos números, por isso:
+    //   - no mesmo dia, todos os telemóveis escolhem o mesmo tema e o mesmo livro;
+    //   - no dia seguinte a semente muda e sai outro livro.
+    // Não é preciso guardar nada numa base de dados.
+    public void getDailyBook(RepositoryCallback<Book> callback) {
+        long seed = Long.parseLong(DateUtils.today().replace("-", ""));
+        Random random = new Random(seed);
+
+        String subject = DAILY_BOOK_SUBJECTS[random.nextInt(DAILY_BOOK_SUBJECTS.length)];
+        int position = random.nextInt(DAILY_BOOK_RESULTS);
+
+        api.searchBooks("subject:" + subject, DAILY_BOOK_RESULTS)
+                .enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
+                    @Override
+                    public void onSuccess(GoogleBooksResponse response) {
+                        List<Book> books = converterLista(response);
+                        if (books.isEmpty()) {
+                            callback.onError("Não foi possível encontrar o livro do dia.");
+                            return;
+                        }
+                        // Se a Google devolver menos livros do que o esperado, o % evita sair da lista
+                        callback.onSuccess(books.get(position % books.size()));
+                    }
+
+                    @Override
+                    public void onError(String message) {
+                        callback.onError(message);
+                    }
+                }));
+    }
+
+    // Converte a resposta da Google numa lista de Book.
+    // Quando não há resultados, a Google não envia a lista "items".
+    private List<Book> converterLista(GoogleBooksResponse response) {
+        List<Book> books = new ArrayList<>();
+        if (response != null && response.items != null) {
+            for (GoogleBooksResponse.Item item : response.items) {
+                if (item.volumeInfo != null) {
+                    books.add(converterParaBook(item));
+                }
+            }
+        }
+        return books;
     }
 
     // Converte um resultado da Google Books num Book da nossa app
