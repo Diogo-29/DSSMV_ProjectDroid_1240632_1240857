@@ -1,7 +1,5 @@
 package com.example.projectdroid.models;
 
-import android.text.TextUtils;
-
 import java.io.Serializable;
 import java.util.List;
 
@@ -35,11 +33,19 @@ public class Book implements Serializable {
     public String getCoverUrl() { return coverUrl; }
     public Integer getNumberOfPages() { return numberOfPages; }
 
-    // Junta todos os autores num só texto, separados por vírgula
+    // Junta todos os autores num só texto, separados por vírgula.
+    // Feito só com Java (sem classes do Android) para poder ser usado nos testes unitários.
     public String getAuthorsAsText() {
         if (authors == null || authors.isEmpty()) {
             return "Sem Autor";
         }
-        return TextUtils.join(", ", authors);
+        StringBuilder text = new StringBuilder();
+        for (int i = 0; i < authors.size(); i++) {
+            if (i > 0) {
+                text.append(", ");
+            }
+            text.append(authors.get(i));
+        }
+        return text.toString();
     }
 }

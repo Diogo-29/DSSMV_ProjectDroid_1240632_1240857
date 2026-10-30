@@ -34,19 +34,26 @@ public class ShakeDetector implements SensorEventListener {
     // Chamado pelo Android sempre que o acelerómetro tem novos valores
     @Override
     public void onSensorChanged(SensorEvent event) {
-        float gX = event.values[0] / SensorManager.GRAVITY_EARTH;
-        float gY = event.values[1] / SensorManager.GRAVITY_EARTH;
-        float gZ = event.values[2] / SensorManager.GRAVITY_EARTH;
+        processar(event.values[0], event.values[1], event.values[2], System.currentTimeMillis());
+    }
 
-        double gForce = Math.sqrt(gX * gX + gY * gY + gZ * gZ);
-
-        if (gForce > SHAKE_THRESHOLD_G) {
-            long now = System.currentTimeMillis();
+    // A lógica está separada do onSensorChanged para poder ser testada sem um sensor real
+    // (nos testes chamamos este método com valores inventados)
+    void processar(float x, float y, float z, long now) {
+        if (calcularForcaG(x, y, z) > SHAKE_THRESHOLD_G) {
             if (now - lastShakeTime > MIN_TIME_BETWEEN_SHAKES_MS) {
                 lastShakeTime = now;
                 listener.onShake();
             }
         }
+    }
+
+    // Força total em "g": sqrt(x² + y² + z²) / 9.8
+    static double calcularForcaG(float x, float y, float z) {
+        float gX = x / SensorManager.GRAVITY_EARTH;
+        float gY = y / SensorManager.GRAVITY_EARTH;
+        float gZ = z / SensorManager.GRAVITY_EARTH;
+        return Math.sqrt(gX * gX + gY * gY + gZ * gZ);
     }
 
     // Não precisamos de saber quando a precisão do sensor muda

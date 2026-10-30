@@ -16,7 +16,16 @@ public class LoanRepository {
     public static final int MAX_ACTIVE_LOANS = 3;
     public static final int MAX_COPIES_PER_BOOK = 5;
 
-    private final RestDbApi api = RetrofitClient.getRestDbApi();
+    private final RestDbApi api;
+
+    public LoanRepository() {
+        this(RetrofitClient.getRestDbApi());
+    }
+
+    // Usado nos testes, para trocar o RestDB real por um falso (mock)
+    LoanRepository(RestDbApi api) {
+        this.api = api;
+    }
 
     // Número de exemplares que a biblioteca tem de um livro (entre 1 e 5).
     // A Google Books não tem stock, por isso a app simula-o a partir do id do livro:

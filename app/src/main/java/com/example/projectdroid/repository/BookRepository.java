@@ -20,7 +20,16 @@ public class BookRepository {
     };
     private static final int DAILY_BOOK_RESULTS = 20;
 
-    private final GoogleBooksApi api = RetrofitClient.getGoogleBooksApi();
+    private final GoogleBooksApi api;
+
+    public BookRepository() {
+        this(RetrofitClient.getGoogleBooksApi());
+    }
+
+    // Usado nos testes, para trocar a API real por uma falsa (mock)
+    BookRepository(GoogleBooksApi api) {
+        this.api = api;
+    }
 
     public void searchBooks(String query, RepositoryCallback<List<Book>> callback) {
         api.searchBooks(query).enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
