@@ -1,43 +1,47 @@
 @startuml
-
 title UC10 - Entrar na conta (SD)
+skinparam sequenceMessageAlign left
 
-actor User
-participant ":LoginActivity" as Activity
-participant ":FirebaseAuth" as Auth
+actor "Utilizador" as U
+participant ":LoginActivity" as A
+participant ":AuthRepository" as R
+participant "Firebase Auth" as FA <<externo>>
+participant ":HomeActivity" as H
 
-User -> Activity: click(btn_sign_up)
-activate Activity
+U -> A: abre a app
+activate A
+A -> R: getCurrentUser()
+R -> FA: getCurrentUser()
+FA --> R: user ou null
+R --> A: user ou null
+alt já existe sessão iniciada
+  A -> H: abrirHome()
+else sem sessão
+  A --> U: mostra o ecrã de login
+end
+deactivate A
 
-    Activity -> Activity: email = etEmail.getText()
-    Activity -> Activity: password = etPassword.getText()
-
-    Activity -> Activity: loginUser()
-    activate Activity
-
-        Activity -> Activity: (validação: TextUtils.isEmpty)
-
-        Activity -> Auth: getInstance()
-        activate Auth
-        Auth --> Activity: mAuth
-        deactivate Auth
-
-        Activity -> Auth: signInWithEmailAndPassword(email, password)
-
-        Auth --> Activity: onComplete(task)
-        activate Activity
-            alt if (task.isSuccessful())
-
-                Activity -> Activity: showToast("Login com sucesso!")
-                Activity -> ":BookListActivity": startActivity(intent.addFlags(..))
-                Activity -> Activity: finish()
-            else
-
-                Activity -> Activity: showToast("Login falhou: " + task.getException())
-            end
-        deactivate Activity
-
-    deactivate Activity
-deactivate Activity
-
+U -> A: escreve email e password e clica em "Entrar"
+activate A
+A -> A: entrar()
+alt email vazio / inválido ou password vazia
+  A --> U: setError() no campo respetivo
+else dados preenchidos
+  A -> R: login(email, password, callback)
+  activate R
+  R -> FA: signInWithEmailAndPassword(email, password)
+  alt credenciais corretas
+    FA --> R: onSuccess(AuthResult)
+    R --> A: onSuccess(FirebaseUser)
+    A -> H: startActivity(FLAG_NEW_TASK | FLAG_CLEAR_TASK)
+    A -> A: finish()
+    H --> U: ecrã principal "Olá, <nome>"
+  else credenciais erradas / sem rede
+    FA --> R: onFailure(exception)
+    R --> A: onError("Email ou password incorretos.")
+    A --> U: Toast(mensagem)
+  end
+  deactivate R
+end
+deactivate A
 @enduml

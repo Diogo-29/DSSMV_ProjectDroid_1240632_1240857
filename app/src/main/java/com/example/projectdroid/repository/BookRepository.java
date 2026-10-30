@@ -36,6 +36,26 @@ public class BookRepository {
         }));
     }
 
+    // Vai buscar um livro completo pelo id da Google.
+    // Usado nos detalhes quando o livro vem dos favoritos, que só guardam título, autores e capa.
+    public void getBookById(String bookId, RepositoryCallback<Book> callback) {
+        api.getBook(bookId).enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse.Item>() {
+            @Override
+            public void onSuccess(GoogleBooksResponse.Item item) {
+                if (item == null || item.volumeInfo == null) {
+                    callback.onError("Livro não encontrado.");
+                    return;
+                }
+                callback.onSuccess(converterParaBook(item));
+            }
+
+            @Override
+            public void onError(String message) {
+                callback.onError(message);
+            }
+        }));
+    }
+
     // Livro do dia (UC8): igual para todos os utilizadores durante o dia todo.
     // A data de hoje (ex.: 20261030) é usada como "semente" do Random.
     // Com a mesma semente, o Random dá sempre os mesmos números, por isso:

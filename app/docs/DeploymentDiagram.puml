@@ -1,0 +1,22 @@
+@startuml
+title Diagrama de Implantação - ProjectDroid
+
+node "Telemóvel Android\n(minSdk 24)" as Phone {
+    artifact "ProjectDroid.apk" as APK
+    component "Acelerómetro" as ACC
+}
+
+node "Google Cloud" as Google {
+    component "Firebase Authentication\n(projeto projectdroid-1a57f)" as FA
+    component "Google Books API v1" as GB
+}
+
+node "restdb.io" as RestDB {
+    database "projectdroid-8180\n(loans, favorites)" as DB
+}
+
+APK -- ACC : SensorManager
+APK -- FA : HTTPS
+APK -- GB : HTTPS / REST (JSON)
+APK -- DB : HTTPS / REST (JSON)
+@enduml

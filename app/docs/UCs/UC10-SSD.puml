@@ -1,27 +1,15 @@
 @startuml
+title UC10 - Entrar na conta (SSD)
 
-title UC10 - Entrar na conta
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: introduzirDadosLogin(email, password)
-activate System
-
-User -> System: submeterLogin()
-
-    System -> System: validarDados()
-
-    System -> System: autenticarUtilizador(email, password)
-
-    alt login com sucesso
-
-        System --> User: mostrarEcraPrincipal()
-
-    else falha no login
-
-        System --> User: mostrarErro(mensagem)
-    end
-
-deactivate System
+U -> S: entrar(email, password)
+activate S
+alt credenciais corretas
+  S --> U: ecrã principal ("Olá, <nome>")
+else credenciais erradas ou sem rede
+  S --> U: mensagemDeErro
+end
+deactivate S
 @enduml

@@ -1,18 +1,11 @@
 @startuml
+title UC7 - Consultar histórico de empréstimos (SSD)
 
-title UC7 - Consultar Histórico de Empréstimos
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: consultarHistoricoEmprestimos()
-activate System
-
-    System -> System: buscarHistorico()
-
-    System -> System: processarListaDoHistorico(historico)
-
-    System --> User: mostrarListaDoHistorico()
-deactivate System
-
+U -> S: verHistorico()
+activate S
+S --> U: listaDeEmprestimosDevolvidos (título, autor, data de devolução)
+deactivate S
 @enduml

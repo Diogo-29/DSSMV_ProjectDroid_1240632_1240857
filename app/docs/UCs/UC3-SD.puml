@@ -1,44 +1,41 @@
 @startuml
+title UC3 - Pesquisar livros (SD)
+skinparam sequenceMessageAlign left
 
-title UC3 - Procurar Livro (SD)
+actor "Utilizador" as U
+participant ":CatalogActivity" as A
+participant ":Handler" as H
+participant ":BookRepository" as R
+participant "Google Books API" as GB <<externo>>
 
-actor User
-participant ":BookListActivity" as Activity
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-participant ":BookAdapter" as Adapter
-
-User -> Activity: onTextChanged(query)
-activate Activity
-
-    Activity -> Activity: searchBooks(query)
-    activate Activity
-
-        Activity -> Api: (RetrofitClient.getBookApi())
-        activate Api
-
-        Api -> Retrofit: searchBooks(query, 0).enqueue()
-        activate Retrofit
-
-            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
-
-        Retrofit --> Activity: onResponse(List<BookSearchResponse>)
-        deactivate Retrofit
-        deactivate Api
-
-        loop para cada livro na resposta
-            Activity -> Activity: Converte BookSearchResponse para Book
-
-            Activity -> Activity: fetchBookStock(isbn, position)
-        end
-
-        Activity -> Adapter: notifyDataSetChanged()
-        activate Adapter
-        deactivate Adapter
-
-    deactivate Activity
-
-    Activity --> User: (Mostra a grelha de livros filtrada)
-deactivate Activity
-
+loop por cada letra escrita
+  U -> A: escreve uma letra
+  activate A
+  A -> A: afterTextChanged()
+  A -> H: removeCallbacks(searchRunnable)
+  A -> H: postDelayed(searchRunnable, 500 ms)
+  deactivate A
+end
+note over U, H: o utilizador para de escrever durante 500 ms
+H -> A: pesquisarTextoEscrito()
+activate A
+alt texto com 3 ou mais letras
+  A -> A: pesquisar(texto)
+else texto vazio
+  A -> A: pesquisar("subject:fiction")
+end
+A -> A: searchId = ++lastSearchId
+A -> R: searchBooks(texto, callback)
+activate R
+R -> GB: GET /volumes?q=<texto>
+GB --> R: 200 OK (JSON)
+R --> A: onSuccess(List<Book>)
+deactivate R
+alt searchId == lastSearchId
+  A -> A: atualiza a lista\n(textEmpty visível se vazia)
+  A --> U: mostra os resultados
+else resposta de uma pesquisa antiga
+  A -> A: ignora a resposta
+end
+deactivate A
 @enduml

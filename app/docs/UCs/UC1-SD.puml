@@ -1,43 +1,32 @@
 @startuml
-title UC1 - Listar Livros (SD)
+title UC1 - Listar livros (SD)
+skinparam sequenceMessageAlign left
 
-actor User
-participant ":BookListActivity" as Activity
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-participant ":BookAdapter" as Adapter
+actor "Utilizador" as U
+participant ":CatalogActivity" as A
+participant ":BookRepository" as R
+participant ":GoogleBooksApi" as API
+participant "Google Books API" as GB <<externo>>
+participant ":BookAdapter" as AD
 
-User -> Activity: (Abre o ecrã Home)
-activate Activity
-
-    Activity -> Activity: onCreate()
-    activate Activity
-        Activity -> Activity: fetchBooks()
-        activate Activity
-
-            Activity -> Api: (RetrofitClient.getBookApi())
-            activate Api
-
-            Api -> Retrofit: getBooks(LIBRARY_ID).enqueue()
-            activate Retrofit
-
-                Retrofit -> Retrofit: (HTTP GET, Parse JSON)
-            deactivate Api
-
-            Retrofit --> Activity: onResponse(List<BookResponse>)
-            deactivate Retrofit
-
-            Activity -> Activity: (Loop) Converte BookResponse para Book
-
-            Activity -> Adapter: notifyDataSetChanged()
-            activate Adapter
-            deactivate Adapter
-
-        deactivate Activity
-    deactivate Activity
-
-
-    Activity --> User: (Mostra a grelha de livros atualizada)
-deactivate Activity
-
+U -> A: abre o Catálogo
+activate A
+A -> A: onCreate()
+A -> A: pesquisar("subject:fiction")
+A -> A: searchId = ++lastSearchId\nprogressSearch VISIBLE
+A -> R: searchBooks(query, callback)
+activate R
+R -> API: searchBooks(query).enqueue()
+activate API
+API -> GB: GET /volumes?q=subject:fiction&key=...
+GB --> API: 200 OK (JSON)
+API --> R: onResponse(GoogleBooksResponse)
+deactivate API
+R -> R: converterLista(response)
+R --> A: onSuccess(List<Book>)
+deactivate R
+A -> A: books.clear(); books.addAll(result)
+A -> AD: notifyDataSetChanged()
+A --> U: mostra a lista de livros
+deactivate A
 @enduml

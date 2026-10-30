@@ -1,60 +1,44 @@
 @startuml
+title UC4 - Requisitar livro (SD)
+skinparam sequenceMessageAlign left
 
-title UC4 - Requisitar Livros (SD)
+actor "Utilizador" as U
+participant ":BookDetailsActivity" as A
+participant ":AlertDialog" as D
+participant ":UserSession" as S
+participant ":LoanRepository" as R
+participant "RestDB" as DB <<externo>>
 
-actor User
-participant ":BookDetailsActivity" as DetailsAct
-participant ":LoanActivity" as LoanAct
-participant ":FirebaseAuth" as Auth
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-
-User -> DetailsAct: click(btn_requisitar_livro)
-activate DetailsAct
-
-    DetailsAct -> LoanAct: startActivity(intent.putExtra("EXTRA_BOOK", book))
-deactivate DetailsAct
-
-LoanAct -> LoanAct: onCreate(intent)
-activate LoanAct
-    LoanAct -> LoanAct: book = intent.getSerializableExtra("EXTRA_BOOK")
-
-    LoanAct -> LoanAct: checkDisponibilidade(book)
-
-    LoanAct -> LoanAct: populateUi(book)
-
-    LoanAct --> User: (Mostra o ecrã de confirmação)
-
-User -> LoanAct: click(btn_confirmar_dialog)
-
-    LoanAct -> LoanAct: performCheckout()
-    activate LoanAct
-
-        LoanAct -> Auth: getCurrentUser()
-        activate Auth
-        Auth --> LoanAct: user
-        deactivate Auth
-
-        LoanAct -> LoanAct: userId = user.getUid()
-        LoanAct -> LoanAct: bookIdentifier = book.getIsbn() ' ou getBookId()
-
-        LoanAct -> Api: (RetrofitClient.getBookApi())
-        activate Api
-
-        Api -> Retrofit: checkoutBook(LIBRARY_ID, bookIdentifier, userId).enqueue()
-        activate Retrofit
-            Retrofit -> Retrofit: (HTTP POST, ...)
-
-        Retrofit --> LoanAct: onResponse(Success)
-        deactivate Retrofit
-        deactivate Api
-
-        LoanAct -> LoanAct: showToast("Livro requisitado com sucesso!")
-        LoanAct -> LoanAct: finish()
-
-    deactivate LoanAct
-
-LoanAct --> User: (Volta ao BookDetailsActivity)
-deactivate LoanAct
-
+U -> A: clica em "Requisitar"
+activate A
+A -> A: confirmarRequisicao()
+A -> D: show(título, prazo 14 dias, data limite)
+deactivate A
+U -> D: clica em "Requisitar"
+D -> A: requisitar()
+activate A
+A -> A: btnRequestLoan.setEnabled(false)
+A -> S: getUserId()
+S --> A: uid
+A -> R: requestLoan(book, uid, callback)
+activate R
+R -> DB: GET /loans?q={"status":"ATIVO"}
+DB --> R: 200 OK (List<Loan>)
+R -> R: conta empréstimos ativos\ndo livro e do utilizador
+alt utilizador já tem este livro
+  R --> A: onError("Já tens este livro requisitado.")
+else ativos do livro >= getTotalCopies(bookId)
+  R --> A: onError("Não há exemplares disponíveis deste livro.")
+else utilizador já tem 3 empréstimos ativos
+  R --> A: onError("Já tens 3 empréstimos ativos...")
+else regras cumpridas
+  R -> R: createLoan(): new Loan(..., hoje, hoje + 14, "ATIVO")
+  R -> DB: POST /loans (JSON)
+  DB --> R: 201 Created (Loan)
+  R --> A: onSuccess(loan)
+  A --> U: Toast "Livro requisitado! Devolver até <data>"
+  A -> A: finish()
+end
+deactivate R
+deactivate A
 @enduml

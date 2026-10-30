@@ -1,18 +1,16 @@
 @startuml
+title UC5 - Devolver livro (SSD)
 
-title UC5 - Devolver Livros
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: selecionarParaDevolucao(livro)
-activate System
-
-    System -> System: processarDevolucao(livro)
-
-    System --> User: mostrarSucessoDevolucao()
-
-    System --> User: atualizarListaDeRequisitados()
-deactivate System
-
+note over U, S: Pré-condição: utilizador está a ver os seus empréstimos ativos
+U -> S: selecionarEmprestimo(emprestimo)
+activate S
+S --> U: opções (Devolver, Renovar, Cancelar)
+deactivate S
+U -> S: devolver()
+activate S
+S --> U: "Livro devolvido." + lista de ativos atualizada
+deactivate S
 @enduml

@@ -1,27 +1,19 @@
 @startuml
+title UC9 - Criar conta (SSD)
 
-title UC9 - Criar conta
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: introduzirDadosRegisto(nome, email, password)
-activate System
-
-User -> System: submeterRegisto()
-
-    System -> System: validarDados()
-
-    System -> System: criarConta(email, password)
-
-    alt dados válidos E registo com sucesso
-
-        System --> User: mostrarEcraPrincipal()
-
-    else dados inválidos OU erro de registo
-
-        System --> User: mostrarErro(mensagem)
-    end
-
-deactivate System
+U -> S: abrirRegisto()
+activate S
+S --> U: formulário (nome, email, password, confirmar password)
+deactivate S
+U -> S: criarConta(nome, email, password, confirmacao)
+activate S
+alt dados válidos e email ainda não registado
+  S --> U: "Conta criada com sucesso!" + ecrã principal
+else dados inválidos ou erro
+  S --> U: mensagemDeErro
+end
+deactivate S
 @enduml

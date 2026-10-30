@@ -1,16 +1,12 @@
 @startuml
+title UC11 - Terminar sessão (SSD)
 
-title UC11 - Terminar sessão da conta
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: solicitarTerminarSessao()
-activate System
-
-    System -> System: processarLogout()
-
-    System --> User: mostrarEcraLogin()
-deactivate System
-
+note over U, S: Pré-condição: utilizador autenticado
+U -> S: terminarSessao()
+activate S
+S --> U: ecrã de login
+deactivate S
 @enduml

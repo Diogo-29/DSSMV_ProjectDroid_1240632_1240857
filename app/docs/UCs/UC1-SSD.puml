@@ -1,23 +1,11 @@
 @startuml
+title UC1 - Listar livros (SSD)
 
-title UC1 - Listar Livros
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-
-User -> System: requestBookList()
-activate System
-
-
-    System -> System: fetchBooks()
-
-    System -> System: displayBookList(books)
-
-    System --> User: showBookListScreen()
-deactivate System
-
+U -> S: abrirCatalogo()
+activate S
+S --> U: listaDeLivros (título, autor, capa)
+deactivate S
 @enduml
-
-
-

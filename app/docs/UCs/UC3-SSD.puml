@@ -1,18 +1,18 @@
 @startuml
+title UC3 - Pesquisar livros (SSD)
 
-title UC3 - Procurar Livro
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: introduzirTextoNaPesquisa(query)
-activate System
-
-    System -> System: procurarLivros(query)
-
-    System -> System: processarResultados(livrosEncontrados)
-
-    System --> User: mostrarResultadosDaPesquisa()
-deactivate System
-
+U -> S: escreverPesquisa(texto)
+activate S
+alt texto com 3 ou mais letras
+  S --> U: listaDeResultados
+else texto vazio
+  S --> U: listaInicial
+end
+alt sem resultados
+  S --> U: "Nenhum resultado encontrado."
+end
+deactivate S
 @enduml

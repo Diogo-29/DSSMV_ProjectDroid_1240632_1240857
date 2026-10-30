@@ -1,51 +1,30 @@
 @startuml
+title UC5 - Devolver livro (SD)
+skinparam sequenceMessageAlign left
 
-title UC5 - Devolver Livros (SD)
+actor "Utilizador" as U
+participant ":MyLoansActivity" as A
+participant ":AlertDialog" as D
+participant ":LoanRepository" as R
+participant "RestDB" as DB <<externo>>
 
-actor User
-participant ":LoanListActivity" as Activity
-participant ":LoanAdapter" as Adapter
-participant ":FirebaseAuth" as Auth
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-
-User -> Adapter: click(btn_return_book)
-activate Adapter
-
-    Adapter -> Activity: onReturnClick(loan, position)
-deactivate Adapter
-
-activate Activity
-
-    Activity -> Auth: getCurrentUser()
-    activate Auth
-    Auth --> Activity: user
-    deactivate Auth
-
-    Activity -> Activity: userId = user.getUid()
-    Activity -> Activity: bookId = loan.bookId
-
-    Activity -> Api: (RetrofitClient.getBookApi())
-    activate Api
-
-    Api -> Retrofit: checkinBook(LIBRARY_ID, bookId, userId).enqueue()
-    activate Retrofit
-        Retrofit -> Retrofit: (HTTP POST, ...)
-
-    Retrofit --> Activity: onResponse(Success)
-    deactivate Retrofit
-    deactivate Api
-
-    Activity -> Activity: showToast("Livro devolvido!")
-
-    Activity -> Activity: loanList.remove(position)
-
-    Activity -> Adapter: notifyItemRemoved(position)
-    activate Adapter
-    deactivate Adapter
-
-deactivate Activity
-
-Activity --> User: (Atualiza a lista de "Requisitados")
-
+U -> A: clica num empréstimo ativo
+activate A
+A -> A: mostrarOpcoes(loan)
+A -> D: show(Devolver / Renovar / Cancelar)
+deactivate A
+U -> D: clica em "Devolver"
+D -> A: devolver(loan)
+activate A
+A -> R: returnLoan(loan, callback)
+activate R
+R -> R: changes.status = "DEVOLVIDO"\nchanges.returnDate = hoje
+R -> DB: PATCH /loans/{id} (JSON)
+DB --> R: 200 OK (Loan)
+R --> A: onSuccess(loan)
+deactivate R
+A --> U: Toast "Livro devolvido."
+A -> A: carregarEmprestimos() (UC6)
+deactivate A
+note right of DB: o empréstimo não é apagado:\npassa para o histórico (UC7)\ne o exemplar volta a ficar disponível
 @enduml

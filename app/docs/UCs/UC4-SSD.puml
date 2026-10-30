@@ -1,22 +1,20 @@
 @startuml
+title UC4 - Requisitar livro (SSD)
 
-title UC4 - Requisitar Livros
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: solicitarRequisicao()
-activate System
-
-    System --> User: mostrarConfirmacao(detalhesDoEmprestimo)
-deactivate System
-
-User -> System: confirmarRequisicao()
-activate System
-
-    System -> System: processarRequisicao()
-
-    System --> User: mostrarSucessoRequisicao()
-deactivate System
-
+note over U, S: Pré-condição: utilizador autenticado e a ver os detalhes de um livro disponível
+U -> S: requisitar()
+activate S
+S --> U: pedirConfirmacao(título, prazo de 14 dias, data limite)
+deactivate S
+U -> S: confirmar()
+activate S
+alt há exemplares, não tem este livro e tem menos de 3 empréstimos ativos
+  S --> U: "Livro requisitado! Devolver até <data>"
+else regra não cumprida
+  S --> U: mensagemDeErro
+end
+deactivate S
 @enduml

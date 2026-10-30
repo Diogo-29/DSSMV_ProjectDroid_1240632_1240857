@@ -1,0 +1,11 @@
+@startuml
+title UC13 - Consultar favoritos (SSD)
+
+actor "Utilizador" as U
+participant ":Sistema" as S
+
+U -> S: abrirFavoritos()
+activate S
+S --> U: listaDeFavoritos (título, autor, capa)
+deactivate S
+@enduml

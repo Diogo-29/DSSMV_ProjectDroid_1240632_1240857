@@ -1,0 +1,37 @@
+@startuml
+title UC14 - Renovar empréstimo (SD)
+skinparam sequenceMessageAlign left
+
+actor "Utilizador" as U
+participant ":MyLoansActivity" as A
+participant ":AlertDialog" as D
+participant ":LoanRepository" as R
+participant ":DateUtils" as DU
+participant "RestDB" as DB <<externo>>
+
+U -> A: clica num empréstimo ativo
+activate A
+A -> D: show(Devolver / Renovar / Cancelar)
+deactivate A
+U -> D: clica em "Renovar"
+D -> A: renovar(loan)
+activate A
+A -> R: renewLoan(loan, callback)
+activate R
+R -> DU: isBeforeToday(loan.dueDate)
+DU --> R: emAtraso
+alt em atraso
+  R --> A: onError("Este empréstimo está em atraso...")
+  A --> U: Toast(mensagem)
+else dentro do prazo
+  R -> DU: addDays(loan.dueDate, 14)
+  DU --> R: novaData
+  R -> DB: PATCH /loans/{id} {dueDate: novaData}
+  DB --> R: 200 OK (Loan)
+  R --> A: onSuccess(loan)
+  A --> U: Toast "Empréstimo renovado por mais 14 dias."
+  A -> A: carregarEmprestimos()
+end
+deactivate R
+deactivate A
+@enduml

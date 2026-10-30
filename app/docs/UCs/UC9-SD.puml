@@ -1,44 +1,39 @@
 @startuml
-
 title UC9 - Criar conta (SD)
+skinparam sequenceMessageAlign left
 
-actor User
-participant ":SignupActivity" as Activity
-participant ":FirebaseAuth" as Auth
+actor "Utilizador" as U
+participant ":SignupActivity" as A
+participant ":AuthRepository" as R
+participant "Firebase Auth" as FA <<externo>>
+participant ":HomeActivity" as H
 
-User -> Activity: click(btn_sign_up)
-activate Activity
-
-    Activity -> Activity: nome = etNome.getText()
-    Activity -> Activity: email = etEmail.getText()
-    Activity -> Activity: password = etPassword.getText()
-
-    Activity -> Activity: registerNewUser()
-    activate Activity
-
-        Activity -> Activity: (validação: TextUtils.isEmpty, password.length() < 6)
-
-        Activity -> Auth: getInstance()
-        activate Auth
-        Auth --> Activity: mAuth
-        deactivate Auth
-
-        Activity -> Auth: createUserWithEmailAndPassword(email, password)
-
-        Auth --> Activity: onComplete(task)
-        activate Activity
-            alt if (task.isSuccessful())
-
-                Activity -> Activity: showToast("Registo com sucesso!")
-                Activity -> ":BookListActivity": startActivity(intent)
-                Activity -> Activity: finish()
-            else
-
-                Activity -> Activity: showToast("Registo falhou: " + task.getException())
-            end
-        deactivate Activity
-
-    deactivate Activity
-deactivate Activity
-
+U -> A: preenche nome, email, password, confirmação\ne clica em "Criar conta"
+activate A
+A -> A: registar()
+A -> A: dadosValidos(...)
+alt dados inválidos (vazio, email inválido, password < 6, passwords diferentes)
+  A --> U: setError() no campo respetivo
+else dados válidos
+  A -> A: btnSignup.setEnabled(false)
+  A -> R: register(nome, email, password, callback)
+  activate R
+  R -> FA: createUserWithEmailAndPassword(email, password)
+  alt conta criada
+    FA --> R: onSuccess(AuthResult)
+    R -> FA: user.updateProfile(displayName = nome)
+    FA --> R: onComplete
+    R --> A: onSuccess(FirebaseUser)
+    A -> H: startActivity(FLAG_NEW_TASK | FLAG_CLEAR_TASK)
+    A -> A: finish()
+    H --> U: ecrã principal "Olá, <nome>"
+  else erro (email já existe, password fraca, sem rede)
+    FA --> R: onFailure(exception)
+    R -> R: traduzirErro(exception)
+    R --> A: onError(mensagem em português)
+    A --> U: Toast(mensagem)
+  end
+  deactivate R
+end
+deactivate A
 @enduml

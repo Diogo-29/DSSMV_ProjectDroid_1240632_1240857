@@ -14,19 +14,32 @@ public class LoanRepository {
 
     public static final int LOAN_DAYS = 14;
     public static final int MAX_ACTIVE_LOANS = 3;
+    public static final int MAX_COPIES_PER_BOOK = 5;
 
     private final RestDbApi api = RetrofitClient.getRestDbApi();
 
-    // Um livro está disponível se não houver nenhum empréstimo ativo dele (cada livro tem 1 cópia)
-    public void isBookAvailable(String googleBookId, RepositoryCallback<Boolean> callback) {
+    // Número de exemplares que a biblioteca tem de um livro (entre 1 e 5).
+    // A Google Books não tem stock, por isso a app simula-o a partir do id do livro:
+    // o hashCode() de uma String é sempre o mesmo em qualquer telemóvel,
+    // logo o mesmo livro tem sempre o mesmo número de exemplares para todos.
+    // (o Math.abs vem depois do %, porque o hashCode pode ser negativo)
+    public static int getTotalCopies(String googleBookId) {
+        return Math.abs(googleBookId.hashCode() % MAX_COPIES_PER_BOOK) + 1;
+    }
+
+    // Exemplares disponíveis = exemplares totais - empréstimos ativos desse livro.
+    // Não guardamos nenhum contador: quando alguém requisita, passa a haver mais um
+    // empréstimo ATIVO (fica com menos um); quando devolve, deixa de contar (fica com mais um).
+    public void getAvailableCopies(String googleBookId, RepositoryCallback<Integer> callback) {
         JsonObject query = new JsonObject();
         query.addProperty("googleBookId", googleBookId);
         query.addProperty("status", Loan.STATUS_ACTIVE);
 
         api.getLoans(query.toString()).enqueue(new ApiCallback<>(new RepositoryCallback<List<Loan>>() {
             @Override
-            public void onSuccess(List<Loan> loans) {
-                callback.onSuccess(loans.isEmpty());
+            public void onSuccess(List<Loan> activeLoans) {
+                int available = getTotalCopies(googleBookId) - activeLoans.size();
+                callback.onSuccess(Math.max(available, 0));
             }
 
             @Override
@@ -47,7 +60,8 @@ public class LoanRepository {
 
     // Requisitar um livro:
     // 1) vai buscar todos os empréstimos ativos (GET)
-    // 2) verifica se o livro está livre e se o utilizador ainda não tem 3 empréstimos
+    // 2) verifica as regras: ainda há exemplares, o utilizador não tem já este livro
+    //    e ainda não tem 3 empréstimos
     // 3) se estiver tudo bem, cria o empréstimo (POST)
     public void requestLoan(Book book, String userId, RepositoryCallback<Loan> callback) {
         JsonObject query = new JsonObject();
@@ -56,15 +70,28 @@ public class LoanRepository {
         api.getLoans(query.toString()).enqueue(new ApiCallback<>(new RepositoryCallback<List<Loan>>() {
             @Override
             public void onSuccess(List<Loan> activeLoans) {
+                int bookActiveLoans = 0;
                 int userActiveLoans = 0;
+
                 for (Loan loan : activeLoans) {
-                    if (book.getBookId().equals(loan.getGoogleBookId())) {
-                        callback.onError("Este livro já está requisitado.");
+                    boolean sameBook = book.getBookId().equals(loan.getGoogleBookId());
+                    boolean sameUser = userId.equals(loan.getUserId());
+
+                    if (sameBook && sameUser) {
+                        callback.onError("Já tens este livro requisitado.");
                         return;
                     }
-                    if (userId.equals(loan.getUserId())) {
+                    if (sameBook) {
+                        bookActiveLoans++;
+                    }
+                    if (sameUser) {
                         userActiveLoans++;
                     }
+                }
+
+                if (bookActiveLoans >= getTotalCopies(book.getBookId())) {
+                    callback.onError("Não há exemplares disponíveis deste livro.");
+                    return;
                 }
 
                 if (userActiveLoans >= MAX_ACTIVE_LOANS) {

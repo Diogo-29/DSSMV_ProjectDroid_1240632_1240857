@@ -1,36 +1,22 @@
 @startuml
+title UC11 - Terminar sessão (SD)
+skinparam sequenceMessageAlign left
 
-title UC11 - Terminar sessão da conta (SD)
+actor "Utilizador" as U
+participant ":HomeActivity" as H
+participant ":AuthRepository" as R
+participant "Firebase Auth" as FA <<externo>>
+participant ":LoginActivity" as L
 
-actor User
-participant ":ProfileActivity" as Activity
-participant ":FirebaseAuth" as Auth
-participant ":LoginActivity" as LoginAct
-
-User -> Activity: click(btn_logout)
-activate Activity
-
-    Activity -> Auth: getInstance()
-    activate Auth
-    Auth --> Activity: mAuth
-    deactivate Auth
-
-    Activity -> Auth: signOut()
-    activate Auth
-    Auth --> Activity: (void)
-    deactivate Auth
-
-    Activity -> Activity: intent = new Intent(..., LoginActivity.class)
-    Activity -> Activity: intent.addFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK)
-
-    Activity -> LoginAct: startActivity(intent)
-    activate LoginAct
-
-    Activity -> Activity: finish()
-
-deactivate Activity
-
-LoginAct --> User: (Mostra o ecrã de Login)
-deactivate LoginAct
-
+U -> H: clica em "Terminar sessão"
+activate H
+H -> R: logout()
+activate R
+R -> FA: signOut()
+deactivate R
+H -> H: abrirLogin()
+H -> L: startActivity(FLAG_NEW_TASK | FLAG_CLEAR_TASK)
+H -> H: finish()
+deactivate H
+L --> U: ecrã de login\n(o botão "voltar" já não regressa à Home)
 @enduml

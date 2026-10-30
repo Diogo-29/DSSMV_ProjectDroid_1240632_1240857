@@ -1,0 +1,34 @@
+@startuml
+title UC12 - Adicionar / remover favorito (SD)
+skinparam sequenceMessageAlign left
+
+actor "Utilizador" as U
+participant ":BookDetailsActivity" as A
+participant ":FavoriteRepository" as R
+participant "RestDB" as DB <<externo>>
+
+U -> A: clica no botão de favorito
+activate A
+A -> A: alternarFavorito()\nbtnFavorite.setEnabled(false)
+alt currentFavorite == null (ainda não é favorito)
+  A -> R: addFavorite(book, uid, callback)
+  activate R
+  R -> DB: POST /favorites {userId, googleBookId, title, authors, coverUrl}
+  DB --> R: 201 Created (Favorite com _id)
+  R --> A: onSuccess(favorite)
+  deactivate R
+  A -> A: currentFavorite = favorite
+  A --> U: "Adicionado aos favoritos"
+else já é favorito
+  A -> R: removeFavorite(currentFavorite, callback)
+  activate R
+  R -> DB: DELETE /favorites/{_id}
+  DB --> R: 200 OK
+  R --> A: onSuccess()
+  deactivate R
+  A -> A: currentFavorite = null
+  A --> U: "Removido dos favoritos"
+end
+A -> A: atualizarBotaoFavorito()
+deactivate A
+@enduml

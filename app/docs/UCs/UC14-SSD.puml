@@ -1,0 +1,20 @@
+@startuml
+title UC14 - Renovar empréstimo (SSD)
+
+actor "Utilizador" as U
+participant ":Sistema" as S
+
+note over U, S: Pré-condição: utilizador está a ver os seus empréstimos ativos
+U -> S: selecionarEmprestimo(emprestimo)
+activate S
+S --> U: opções (Devolver, Renovar, Cancelar)
+deactivate S
+U -> S: renovar()
+activate S
+alt empréstimo não está em atraso
+  S --> U: "Empréstimo renovado por mais 14 dias." + nova data limite
+else empréstimo em atraso
+  S --> U: "Este empréstimo está em atraso. Tens de devolver o livro."
+end
+deactivate S
+@enduml

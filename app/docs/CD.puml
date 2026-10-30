@@ -1,126 +1,205 @@
 @startuml
 skinparam classAttributeIconSize 0
-title Diagrama de Classes - SmartLib
+skinparam packageStyle folder
+skinparam linetype ortho
+title Diagrama de Classes - ProjectDroid
+left to right direction
 
-package "models" {
-    class User {
-        - uid: String
-        - email: String
-        + getUid(): String
-        + getEmail(): String
+package "ui" {
+    class LoginActivity {
+        - authRepository: AuthRepository
+        - entrar(): void
+        - abrirHome(): void
     }
-
-    class Book {
-        - isbn: String
-        - title: String
-        - authors: String
-        - description: String
-        - pages: int
-        - coverUrl: String
-        - availableCopies: int
-        + getIsbn(): String
-        + getTitle(): String
-        + getAvailableCopies(): int
+    class SignupActivity {
+        - authRepository: AuthRepository
+        - registar(): void
+        - dadosValidos(...): boolean
     }
+    class HomeActivity {
+        - authRepository: AuthRepository
+        - abrirLogin(): void
+    }
+    class CatalogActivity {
+        - bookRepository: BookRepository
+        - handler: Handler
+        - lastSearchId: int
+        - pesquisarTextoEscrito(): void
+        - pesquisar(query: String): void
+    }
+    class BookDetailsActivity {
+        - book: Book
+        - currentFavorite: Favorite
+        - mostrarLivro(): void
+        - carregarLivroCompleto(): void
+        - verificarDisponibilidade(): void
+        - confirmarRequisicao(): void
+        - requisitar(): void
+        - alternarFavorito(): void
+    }
+    class MyLoansActivity {
+        - showingHistory: boolean
+        - carregarEmprestimos(): void
+        - devolver(loan: Loan): void
+        - renovar(loan: Loan): void
+    }
+    class FavoritesActivity {
+        - carregarFavoritos(): void
+    }
+    class DailyBookActivity {
+        - sensorManager: SensorManager
+        - accelerometer: Sensor
+        - shakeDetector: ShakeDetector
+        - dailyBook: Book
+        - shaken: boolean
+        - carregarLivroDoDia(): void
+        - aoAbanar(): void
+        - mostrarLivro(): void
+    }
+    class BookAdapter
+    class LoanAdapter
+}
 
-    class Loan {
-        - id: String
-        - userId: String
-        - bookIsbn: String
-        - checkoutDate: String
-        - returnDate: String
-        - status: String
-        + getId(): String
-        + getStatus(): String
+package "repository" {
+    interface "RepositoryCallback<T>" as RepositoryCallback {
+        + onSuccess(result: T): void
+        + onError(message: String): void
+    }
+    class "ApiCallback<T>" as ApiCallback {
+        + onResponse(...): void
+        + onFailure(...): void
+    }
+    class AuthRepository {
+        + login(email, password, callback): void
+        + register(name, email, password, callback): void
+        + logout(): void
+        + getCurrentUser(): FirebaseUser
+    }
+    class BookRepository {
+        + searchBooks(query, callback): void
+        + getBookById(bookId, callback): void
+        + getDailyBook(callback): void
+    }
+    class LoanRepository {
+        + {static} LOAN_DAYS = 14
+        + {static} MAX_ACTIVE_LOANS = 3
+        + {static} getTotalCopies(bookId): int
+        + getAvailableCopies(bookId, callback): void
+        + getUserLoans(userId, status, callback): void
+        + requestLoan(book, userId, callback): void
+        + returnLoan(loan, callback): void
+        + renewLoan(loan, callback): void
+    }
+    class FavoriteRepository {
+        + getFavorites(userId, callback): void
+        + findFavorite(userId, bookId, callback): void
+        + addFavorite(book, userId, callback): void
+        + removeFavorite(favorite, callback): void
     }
 }
 
 package "network" {
-    interface LibraryApi {
-        + getBooks(): Call<List<Book>>
-        + getBookByIsbn(isbn: String): Call<Book>
-        + checkoutBook(loan: Loan): Call<Void>
-        + returnBook(loanId: String): Call<Void>
-        + getUserLoans(userId: String): Call<List<Loan>>
-    }
-
     class RetrofitClient {
-        - static instance: RetrofitClient
-        - api: LibraryApi
-        + static getInstance(): RetrofitClient
-        + getApi(): LibraryApi
+        + {static} getGoogleBooksApi(): GoogleBooksApi
+        + {static} getRestDbApi(): RestDbApi
+    }
+    interface GoogleBooksApi {
+        + searchBooks(q): Call
+        + searchBooks(q, maxResults): Call
+        + getBook(id): Call
+    }
+    interface RestDbApi {
+        + getLoans(q): Call
+        + createLoan(loan): Call
+        + updateLoan(id, changes): Call
+        + getFavorites(q): Call
+        + addFavorite(favorite): Call
+        + deleteFavorite(id): Call
     }
 }
 
-package "ui" {
-    class LoginActivity {
-        - mAuth: FirebaseAuth
-        # onCreate(savedInstanceState: Bundle): void
-        - loginUser(): void
+package "models" {
+    class Book {
+        - bookId: String
+        - title: String
+        - authors: List<String>
+        - isbn: String
+        - description: String
+        - coverUrl: String
+        - numberOfPages: Integer
+        + getAuthorsAsText(): String
     }
-
-    class BookListActivity {
-        - adapter: BookAdapter
-        # onCreate(savedInstanceState: Bundle): void
-        - fetchBooks(): void
-        - filterBooks(query: String): void
+    class Loan {
+        - id: String
+        - userId: String
+        - googleBookId: String
+        - loanDate: String
+        - dueDate: String
+        - returnDate: String
+        - status: String
+        + isActive(): boolean
     }
-
-    class BookDetailsActivity {
-        - currentBook: Book
-        # onCreate(savedInstanceState: Bundle): void
-        - displayBookDetails(): void
-        - handleCheckout(): void
+    class Favorite {
+        - id: String
+        - userId: String
+        - googleBookId: String
+        + toBook(): Book
     }
+    class GoogleBooksResponse
+}
 
-    class ProfileActivity {
-        - mAuth: FirebaseAuth
-        - adapter: LoanAdapter
-        # onCreate(savedInstanceState: Bundle): void
-        - fetchUserLoans(): void
-        - handleReturnBook(loanId: String): void
-        - handleLogout(): void
-    }
-
-    class DailyBookActivity {
-        - sensorManager: SensorManager
-        - accelerometer: Sensor
-        # onCreate(savedInstanceState: Bundle): void
-        - detectShakeEvent(): void
-        - fetchRandomBook(): void
+package "session" {
+    class UserSession {
+        + {static} getUserId(): String
+        + {static} getUserName(): String
+        + {static} getUserEmail(): String
     }
 }
 
-package "adapters" {
-    class BookAdapter {
-        - bookList: List<Book>
-        + onCreateViewHolder(): ViewHolder
-        + onBindViewHolder(): void
+package "utils" {
+    class ShakeDetector {
+        - SHAKE_THRESHOLD_G = 2.7
+        + onSensorChanged(event): void
     }
-    class LoanAdapter {
-        - loanList: List<Loan>
-        + onCreateViewHolder(): ViewHolder
-        + onBindViewHolder(): void
+    interface OnShakeListener {
+        + onShake(): void
+    }
+    class DateUtils {
+        + {static} today(): String
+        + {static} addDays(date, days): String
+        + {static} isBeforeToday(date): boolean
     }
 }
 
-' Relações de Integração de Rede
-RetrofitClient --> LibraryApi : inicializa >
-BookListActivity --> RetrofitClient : usa >
-BookDetailsActivity --> RetrofitClient : usa >
-ProfileActivity --> RetrofitClient : usa >
-DailyBookActivity --> RetrofitClient : usa >
+LoginActivity --> AuthRepository
+SignupActivity --> AuthRepository
+HomeActivity --> AuthRepository
+CatalogActivity --> BookRepository
+CatalogActivity --> BookAdapter
+BookDetailsActivity --> BookRepository
+BookDetailsActivity --> LoanRepository
+BookDetailsActivity --> FavoriteRepository
+MyLoansActivity --> LoanRepository
+MyLoansActivity --> LoanAdapter
+FavoritesActivity --> FavoriteRepository
+FavoritesActivity --> BookAdapter
+DailyBookActivity --> BookRepository
+DailyBookActivity --> ShakeDetector
+ShakeDetector --> OnShakeListener
 
-' Relações de Interface (Adapters)
-BookListActivity --> BookAdapter : contém >
-ProfileActivity --> LoanAdapter : contém >
+BookRepository --> GoogleBooksApi
+LoanRepository --> RestDbApi
+FavoriteRepository --> RestDbApi
+ApiCallback --> RepositoryCallback : notifica >
+RetrofitClient ..> GoogleBooksApi : cria >
+RetrofitClient ..> RestDbApi : cria >
 
-' Relações de Dados (Models)
-BookAdapter --> Book : apresenta >
-LoanAdapter --> Loan : apresenta >
-
-' Relação de Autenticação
-LoginActivity ..> User : autentica >
-ProfileActivity ..> User : gere >
-
+BookRepository ..> Book
+BookRepository ..> GoogleBooksResponse
+LoanRepository ..> Loan
+FavoriteRepository ..> Favorite
+LoanRepository ..> DateUtils
+BookDetailsActivity ..> UserSession
+MyLoansActivity ..> UserSession
+FavoritesActivity ..> UserSession
 @enduml

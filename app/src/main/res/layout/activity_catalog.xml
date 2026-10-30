@@ -21,13 +21,26 @@
         android:orientation="horizontal"
         android:gravity="center_vertical">
 
+        <!-- imeOptions="actionSearch": o teclado mostra a tecla de pesquisar -->
         <EditText
             android:id="@+id/editSearchQuery"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="Pesquisar por título, autor..."
-            android:inputType="text" />
+            android:inputType="text"
+            android:imeOptions="actionSearch"
+            android:textColor="#000000"
+            android:textColorHint="#888888" />
+
+        <!-- Indicador de "a carregar", visível enquanto se espera pela Google -->
+        <ProgressBar
+            android:id="@+id/progressSearch"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginStart="8dp"
+            android:visibility="gone" />
 
         <Button
             android:id="@+id/btnSearch"
@@ -36,6 +49,18 @@
             android:text="Procurar"
             android:layout_marginStart="8dp" />
     </LinearLayout>
+
+    <!-- Aparece quando a pesquisa não tem resultados -->
+    <TextView
+        android:id="@+id/textEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:text="Nenhum resultado encontrado."
+        android:textColor="#777777"
+        android:textSize="16sp"
+        android:visibility="gone" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerBooks"

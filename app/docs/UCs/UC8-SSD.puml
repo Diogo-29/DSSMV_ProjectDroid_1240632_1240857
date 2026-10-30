@@ -1,23 +1,21 @@
 @startuml
+title UC8 - Ver o livro do dia (SSD)
 
-title UC8 - Ver o livro do dia
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: requestDailyBookScreen()
-activate System
-
-    System -> System: setupDailyBook()
-    System --> User: displayShakeInstructions()
-deactivate System
-
-User -> System: (Abana o dispositivo)
-activate System
-
-    System -> System: detectShake()
-
-    System --> User: displayDailyBook()
-deactivate System
-
+U -> S: abrirLivroDoDia()
+activate S
+S --> U: "Abana o telemóvel para descobrir o livro do dia!"
+deactivate S
+U -> S: abanarTelemovel()
+activate S
+S --> U: livroDoDia (capa, título, autores) + vibração
+deactivate S
+opt
+  U -> S: verDetalhes()
+  activate S
+  S --> U: detalhes do livro (UC2)
+  deactivate S
+end
 @enduml

@@ -1,18 +1,11 @@
 @startuml
+title UC6 - Consultar empréstimos ativos (SSD)
 
-title UC6 - Consultar Empréstimos
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: consultarEmprestimosAtivos()
-activate System
-
-    System -> System: buscarEmprestimos()
-
-    System -> System: processarListaDeEmprestimos(emprestimos)
-
-    System --> User: mostrarListaDeEmprestimos()
-deactivate System
-
+U -> S: abrirOsMeusEmprestimos()
+activate S
+S --> U: listaDeEmprestimosAtivos (título, autor, data limite, "em atraso")
+deactivate S
 @enduml

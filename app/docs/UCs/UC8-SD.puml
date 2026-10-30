@@ -1,87 +1,52 @@
 @startuml
-
 title UC8 - Ver o livro do dia (SD)
+skinparam sequenceMessageAlign left
 
-actor User
-participant ":DailyBookActivity" as Activity
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-participant ":SharedPreferences" as Prefs
-participant ":SensorManager" as SensorMgr
+actor "Utilizador" as U
+participant ":DailyBookActivity" as A
+participant ":SensorManager" as SM
+participant ":ShakeDetector" as SD
+participant ":BookRepository" as R
+participant "Google Books API" as GB <<externo>>
 
-User -> Activity: (Navega para o ecrã Shake)
-activate Activity
-    Activity -> Activity: onCreate()
-    activate Activity
+U -> A: clica em "Livro do dia"
+activate A
+A -> A: onCreate()
+A -> SM: getDefaultSensor(TYPE_ACCELEROMETER)
+SM --> A: accelerometer
+A -> SD: new ShakeDetector(this::aoAbanar)
+A -> R: getDailyBook(callback)
+activate R
+R -> R: seed = data de hoje (ex.: 20261030)\nrandom = new Random(seed)\ntema = TEMAS[random.nextInt(10)]\nposicao = random.nextInt(20)
+R -> GB: GET /volumes?q=subject:<tema>&maxResults=20
+GB --> R: 200 OK (JSON)
+R --> A: onSuccess(livros[posicao % tamanho])
+deactivate R
+A -> A: dailyBook = livro
+A -> A: onResume()
+A -> SM: registerListener(shakeDetector, accelerometer, SENSOR_DELAY_UI)
+A --> U: "Abana o telemóvel para descobrir o livro do dia!"
+deactivate A
 
-        Activity -> Activity: fetchBooks()
-        activate Activity
-            Activity -> Api: (RetrofitClient.getBookApi())
-            Api -> Retrofit: getBooks(LIBRARY_ID).enqueue()
-            activate Retrofit
-            Retrofit --> Activity: onResponse(List<BookResponse>)
-            deactivate Retrofit
-
-            Activity -> Activity: getDailyBook()
-            activate Activity
-
-                Activity -> Prefs: getString(KEY_LAST_DATE)
-                activate Prefs
-                Prefs --> Activity: lastDate
-                deactivate Prefs
-
-                alt if (today != lastDate)
-                    Activity -> Activity: (Escolhe livro aleatório)
-
-                    Activity -> Prefs: edit().putInt(KEY_BOOK_INDEX).apply()
-                    activate Prefs
-                    deactivate Prefs
-                else
-
-                    Activity -> Prefs: getInt(KEY_BOOK_INDEX)
-                    activate Prefs
-                    Prefs --> Activity: bookIndex
-                    deactivate Prefs
-                end
-
-            deactivate Activity
-
-            Activity -> Activity: populateBookCard(dailyBook)
-            activate Activity
-            deactivate Activity
-
-        deactivate Activity
-
-        Activity -> SensorMgr: (getSystemService)
-        Activity -> SensorMgr: registerListener(this, accelerometer)
-        activate SensorMgr
-
-    deactivate Activity
-
-    Activity --> User: (Mostra "Abana o telemóvel...")
-
-User -> Activity: (Abana fisicamente)
-
-    SensorMgr --> Activity: onSensorChanged(event)
-    activate Activity
-
-        Activity -> Activity: (Calcula 'acceleration')
-
-        alt if (acceleration > SHAKE_THRESHOLD)
-
-            Activity -> Activity: revealBookCard()
-            activate Activity
-
-                Activity -> Activity: tvInstructions.setVisibility(GONE)
-                Activity -> Activity: cardBook.setVisibility(VISIBLE)
-
-                Activity -> SensorMgr: unregisterListener(this)
-            deactivate Activity
-        end
-    deactivate Activity
-    deactivate SensorMgr
-
-    Activity --> User: (Mostra o CardView do Livro)
-deactivate Activity
-
+U -> SM: abana o telemóvel
+loop enquanto o sensor envia valores
+  SM -> SD: onSensorChanged(event)
+  activate SD
+  SD -> SD: gForce = sqrt(x² + y² + z²) / 9.8
+  opt gForce > 2.7 e passou mais de 1 s desde o último abanão
+    SD -> A: onShake() -> aoAbanar()
+    activate A
+    A -> A: shaken = true
+    A -> SM: unregisterListener(shakeDetector)
+    A -> A: performHapticFeedback() (vibração)
+    alt dailyBook já chegou
+      A -> A: mostrarLivro()
+      A --> U: mostra capa, título e autores
+    else ainda a carregar
+      A --> U: "A carregar o livro do dia..."\n(mostrado quando a resposta chegar)
+    end
+    deactivate A
+  end
+  deactivate SD
+end
 @enduml

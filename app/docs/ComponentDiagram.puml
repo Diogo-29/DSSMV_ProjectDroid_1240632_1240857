@@ -1,0 +1,34 @@
+@startuml
+title Diagrama de Componentes - ProjectDroid
+skinparam componentStyle rectangle
+
+package "App Android (Java)" {
+    [ui\n(Activities + Adapters)] as UI
+    [repository\n(regras da biblioteca)] as REPO
+    [network\n(Retrofit + OkHttp)] as NET
+    [session\n(UserSession)] as SES
+    [utils\n(ShakeDetector, DateUtils)] as UTL
+    [Firebase Auth SDK] as FSDK
+}
+
+cloud "Serviços externos" {
+    [Firebase Authentication] as FA
+    [Google Books API\nhttps://www.googleapis.com/books/v1/] as GB
+    [RestDB\n(coleções loans e favorites)] as DB
+}
+
+node "Hardware do telemóvel" {
+    [Acelerómetro] as ACC
+}
+
+UI --> REPO
+UI --> SES
+UI --> UTL
+REPO --> NET
+REPO --> FSDK
+SES --> FSDK
+UTL --> ACC : SensorManager
+NET --> GB : HTTPS GET (JSON)\nparâmetro "key"
+NET --> DB : HTTPS GET/POST/PATCH/DELETE (JSON)\nheader "x-apikey"
+FSDK --> FA : HTTPS
+@enduml

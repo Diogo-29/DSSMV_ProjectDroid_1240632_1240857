@@ -1,53 +1,30 @@
 @startuml
+title UC6 - Consultar empréstimos ativos (SD)
+skinparam sequenceMessageAlign left
 
-title UC6 - Consultar Empréstimos (SD)
+actor "Utilizador" as U
+participant ":HomeActivity" as H
+participant ":MyLoansActivity" as A
+participant ":UserSession" as S
+participant ":LoanRepository" as R
+participant "RestDB" as DB <<externo>>
+participant ":LoanAdapter" as AD
 
-actor User
-participant ":ProfileActivity" as ProfileAct
-participant ":LoanListActivity" as ListAct
-participant ":FirebaseAuth" as Auth
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-participant ":LoanAdapter" as Adapter
-
-User -> ProfileAct: click(card_loans)
-activate ProfileAct
-
-    ProfileAct -> ListAct: startActivity(intent)
-deactivate ProfileAct
-
-ListAct -> ListAct: onCreate()
-activate ListAct
-
-    ListAct -> Auth: getCurrentUser()
-    activate Auth
-    Auth --> ListAct: user
-    deactivate Auth
-
-    ListAct -> ListAct: currentUserId = user.getUid()
-    ListAct -> ListAct: fetchCheckedOutBooks()
-    activate ListAct
-
-        ListAct -> Api: (RetrofitClient.getBookApi())
-        activate Api
-
-        Api -> Retrofit: getCheckedOutBooks(currentUserId).enqueue()
-        activate Retrofit
-            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
-
-        Retrofit --> ListAct: onResponse(List<LoanResponse>)
-        deactivate Retrofit
-        deactivate Api
-
-        ListAct -> ListAct: loanList.addAll(response.body())
-
-        ListAct -> Adapter: notifyDataSetChanged()
-        activate Adapter
-        deactivate Adapter
-
-    deactivate ListAct
-
-    ListAct --> User: (Mostra a lista de empréstimos)
-deactivate ListAct
-
+U -> H: clica em "Os meus empréstimos"
+H -> A: startActivity()
+activate A
+A -> A: onResume()
+A -> A: carregarEmprestimos()\n(showingHistory = false)
+A -> S: getUserId()
+S --> A: uid
+A -> R: getUserLoans(uid, "ATIVO", callback)
+activate R
+R -> DB: GET /loans?q={"userId":uid,"status":"ATIVO"}
+DB --> R: 200 OK (List<Loan>)
+R --> A: onSuccess(List<Loan>)
+deactivate R
+A -> AD: notifyDataSetChanged()
+AD -> AD: onBindViewHolder(): "Devolver até <data>"\n+ " (em atraso)" se dueDate < hoje
+A --> U: mostra os empréstimos ativos
+deactivate A
 @enduml

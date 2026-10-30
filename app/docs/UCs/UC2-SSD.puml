@@ -1,18 +1,11 @@
 @startuml
+title UC2 - Consultar detalhes de um livro (SSD)
 
-title UC2 - Consultar Detalhes de um Livro
+actor "Utilizador" as U
+participant ":Sistema" as S
 
-actor User
-participant ":System" as System
-
-User -> System: selecionarLivro(isbn)
-activate System
-
-    System -> System: buscarDetalhes(isbn)
-
-    System -> System: preencherDetalhes(livro)
-
-    System --> User: mostrarDetalhesDoLivro()
-deactivate System
-
+U -> S: selecionarLivro(livro)
+activate S
+S --> U: detalhes (capa, título, autores, páginas, ISBN, descrição)\n+ exemplares disponíveis / totais\n+ estado de favorito
+deactivate S
 @enduml

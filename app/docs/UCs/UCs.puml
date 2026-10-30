@@ -1,21 +1,73 @@
 @startuml
-'https://plantuml.com/use-case-diagram
-
-title Use Case Diagram
+title Diagrama de Casos de Uso - ProjectDroid (Gestor de Biblioteca)
 left to right direction
+skinparam packageStyle rectangle
 
+actor "Utilizador" as User
+actor "Firebase Auth" as Firebase <<sistema externo>>
+actor "Google Books API" as Google <<sistema externo>>
+actor "RestDB" as RestDB <<sistema externo>>
 
-User --> (UC1 - Listar Livros)
-User --> (UC2 - Consultar detalhes de um Livro)
-User --> (UC3 - Procurar Livro)
-User -->(UC4 - Requisitar Livros)
-User --> (UC5 - Devolver Livros)
-User --> (UC6 - Consultar Empréstimos)
-User --> (UC7 - Consultar Historico de Empréstimos)
-User --> (UC8 - Ver o livro do dia)
-User --> (UC9 - Criar conta)
-User --> (UC10 - Entrar na conta)
-User --> (UC11 - Terminar sessão da conta)
+rectangle "ProjectDroid" {
+    package "Conta" {
+        usecase "UC9 - Criar conta" as UC9
+        usecase "UC10 - Entrar na conta" as UC10
+        usecase "UC11 - Terminar sessão" as UC11
+    }
 
+    package "Catálogo" {
+        usecase "UC1 - Listar livros" as UC1
+        usecase "UC2 - Consultar detalhes de um livro" as UC2
+        usecase "UC3 - Pesquisar livros" as UC3
+        usecase "UC8 - Ver o livro do dia\n(abanar o telemóvel)" as UC8
+    }
 
+    package "Empréstimos" {
+        usecase "UC4 - Requisitar livro" as UC4
+        usecase "UC5 - Devolver livro" as UC5
+        usecase "UC6 - Consultar empréstimos ativos" as UC6
+        usecase "UC7 - Consultar histórico de empréstimos" as UC7
+        usecase "UC14 - Renovar empréstimo" as UC14
+    }
+
+    package "Favoritos" {
+        usecase "UC12 - Adicionar / remover favorito" as UC12
+        usecase "UC13 - Consultar favoritos" as UC13
+    }
+}
+
+User --> UC9
+User --> UC10
+User --> UC11
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC8
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC14
+User --> UC12
+User --> UC13
+
+UC4 .> UC2 : <<extend>>
+UC12 .> UC2 : <<extend>>
+UC5 .> UC6 : <<extend>>
+UC14 .> UC6 : <<extend>>
+
+UC9 --> Firebase
+UC10 --> Firebase
+UC11 --> Firebase
+UC1 --> Google
+UC2 --> Google
+UC3 --> Google
+UC8 --> Google
+UC4 --> RestDB
+UC5 --> RestDB
+UC6 --> RestDB
+UC7 --> RestDB
+UC14 --> RestDB
+UC12 --> RestDB
+UC13 --> RestDB
 @enduml

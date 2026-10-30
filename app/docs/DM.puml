@@ -1,31 +1,67 @@
 @startuml
 hide circle
+hide methods
 skinparam classAttributeIconSize 0
-title Modelo de Domínio - SmartLib
+title Modelo de Domínio - ProjectDroid (Gestor de Biblioteca)
 
 class Utilizador {
-  id: String
-  email: String
+  uid
+  nome
+  email
 }
 
 class Livro {
-  isbn: String
-  titulo: String
-  autores: String
-  descricao: String
-  numeroPaginas: int
-  capaUrl: String
-  stockTotal: int
-  copiasDisponiveis: int
+  id
+  titulo
+  autores
+  isbn
+  descricao
+  numeroPaginas
+  capaUrl
+  /exemplaresTotais
+  /exemplaresDisponiveis
 }
 
 class Emprestimo {
-  id: String
-  dataRequisicao: Date
-  dataDevolucao: Date
-  estado: String
+  dataRequisicao
+  dataLimite
+  dataDevolucao
+  estado
+}
+
+enum EstadoEmprestimo {
+  ATIVO
+  DEVOLVIDO
+}
+
+class Favorito {
 }
 
 Utilizador "1" -- "0..*" Emprestimo : realiza >
-Livro "1" -- "0..*" Emprestimo : é alvo de <
+Livro "1" -- "0..*" Emprestimo : é emprestado em >
+Utilizador "1" -- "0..*" Favorito : marca >
+Livro "1" -- "0..*" Favorito : é marcado em >
+Emprestimo --> "1" EstadoEmprestimo : tem >
+
+note right of Utilizador
+  Guardado no Firebase Authentication.
+  Máximo de 3 empréstimos ATIVOS.
+end note
+
+note right of Livro
+  Informação vinda da Google Books API.
+  /exemplaresTotais: entre 1 e 5 (derivado do id).
+  /exemplaresDisponiveis = totais - empréstimos ATIVOS.
+end note
+
+note bottom of Emprestimo
+  Guardado no RestDB (coleção "loans").
+  dataLimite = dataRequisicao + 14 dias.
+  Renovar soma 14 dias à dataLimite
+  (não é possível se estiver em atraso).
+end note
+
+note bottom of Favorito
+  Guardado no RestDB (coleção "favorites").
+end note
 @enduml

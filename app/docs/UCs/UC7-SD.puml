@@ -1,57 +1,28 @@
 @startuml
+title UC7 - Consultar histórico de empréstimos (SD)
+skinparam sequenceMessageAlign left
 
-title UC7 - Consultar Histórico de Empréstimos (SD)
+actor "Utilizador" as U
+participant ":MyLoansActivity" as A
+participant ":UserSession" as S
+participant ":LoanRepository" as R
+participant "RestDB" as DB <<externo>>
+participant ":LoanAdapter" as AD
 
-actor User
-participant ":ProfileActivity" as ProfileAct
-participant ":HistoryActivity" as HistAct
-participant ":FirebaseAuth" as Auth
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-participant ":HistoryAdapter" as Adapter
-
-User -> ProfileAct: click(card_history)
-activate ProfileAct
-
-    ProfileAct -> HistAct: startActivity(intent)
-deactivate ProfileAct
-
-HistAct -> HistAct: onCreate()
-activate HistAct
-
-    HistAct -> Auth: getCurrentUser()
-    activate Auth
-    Auth --> HistAct: user
-    deactivate Auth
-
-    HistAct -> HistAct: currentUserId = user.getUid()
-    HistAct -> HistAct: fetchCheckoutHistory()
-    activate HistAct
-
-        HistAct -> Api: (RetrofitClient.getBookApi())
-        activate Api
-
-        Api -> Retrofit: getCheckoutHistory(currentUserId).enqueue()
-        activate Retrofit
-            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
-
-        Retrofit --> HistAct: onResponse(List<LoanResponse>)
-        deactivate Retrofit
-        deactivate Api
-
-        HistAct -> HistAct: historyList.addAll(response.body())
-
-        loop para cada 'loan' na lista
-            HistAct -> HistAct: fetchBookStock(loan.book.isbn, position)
-        end
-
-        HistAct -> Adapter: notifyDataSetChanged()
-        activate Adapter
-        deactivate Adapter
-
-    deactivate HistAct
-
-    HistAct --> User: (Mostra a grelha do histórico)
-deactivate HistAct
-
+U -> A: clica em "Histórico"
+activate A
+A -> A: showingHistory = true
+A -> A: carregarEmprestimos()
+A -> S: getUserId()
+S --> A: uid
+A -> R: getUserLoans(uid, "DEVOLVIDO", callback)
+activate R
+R -> DB: GET /loans?q={"userId":uid,"status":"DEVOLVIDO"}
+DB --> R: 200 OK (List<Loan>)
+R --> A: onSuccess(List<Loan>)
+deactivate R
+A -> AD: notifyDataSetChanged()
+AD -> AD: onBindViewHolder(): "Devolvido em <data>"
+A --> U: mostra o histórico
+deactivate A
 @enduml

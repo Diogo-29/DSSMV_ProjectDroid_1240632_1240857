@@ -1,60 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- ScrollView porque a descrição pode ser longa -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal"
     android:background="#FFFFFF">
 
-    <ImageView
-        android:id="@+id/detailImageCover"
-        android:layout_width="150dp"
-        android:layout_height="220dp"
-        android:scaleType="centerCrop"
-        android:background="#EEEEEE"
-        android:layout_marginBottom="16dp" />
-
-    <TextView
-        android:id="@+id/detailTextTitle"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:textColor="#000000" />
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
-    <TextView
-        android:id="@+id/detailTextAuthor"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textAlignment="center"
-        android:textColor="#555555"
-        android:layout_marginTop="8dp" />
+        <ImageView
+            android:id="@+id/detailImageCover"
+            android:layout_width="150dp"
+            android:layout_height="220dp"
+            android:scaleType="centerCrop"
+            android:background="#EEEEEE"
+            android:contentDescription="Capa do livro"
+            android:layout_marginBottom="16dp" />
 
-    <TextView
-        android:id="@+id/detailTextAvailability"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textAlignment="center"
-        android:textColor="#333333"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="24dp" />
+        <TextView
+            android:id="@+id/detailTextTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textColor="#000000" />
 
-    <Button
-        android:id="@+id/btnRequestLoan"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Requisitar"
-        android:layout_marginBottom="12dp" />
+        <TextView
+            android:id="@+id/detailTextAuthor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:textColor="#555555"
+            android:layout_marginTop="8dp" />
 
-    <Button
-        android:id="@+id/btnFavorite"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Adicionar aos favoritos" />
+        <!-- Páginas e ISBN -->
+        <TextView
+            android:id="@+id/detailTextInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textAlignment="center"
+            android:textColor="#777777"
+            android:layout_marginTop="8dp"
+            android:visibility="gone" />
 
-</LinearLayout>
+        <TextView
+            android:id="@+id/detailTextAvailability"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textAlignment="center"
+            android:textColor="#333333"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="24dp" />
+
+        <Button
+            android:id="@+id/btnRequestLoan"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Requisitar"
+            android:layout_marginBottom="12dp" />
+
+        <Button
+            android:id="@+id/btnFavorite"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Adicionar aos favoritos" />
+
+        <TextView
+            android:id="@+id/detailTextDescriptionLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Descrição"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/detailTextDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="#333333"
+            android:lineSpacingExtra="4dp"
+            android:visibility="gone" />
+
+    </LinearLayout>
+</ScrollView>

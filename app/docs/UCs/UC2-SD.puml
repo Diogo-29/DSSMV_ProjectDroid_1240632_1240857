@@ -1,51 +1,48 @@
 @startuml
+title UC2 - Consultar detalhes de um livro (SD)
+skinparam sequenceMessageAlign left
 
-title UC2 - Consultar Detalhes de um Livro (SD)
+actor "Utilizador" as U
+participant ":CatalogActivity\n:FavoritesActivity\n:DailyBookActivity" as P
+participant ":BookDetailsActivity" as A
+participant ":BookRepository" as BR
+participant ":LoanRepository" as LR
+participant ":FavoriteRepository" as FR
+participant "Google Books API" as GB <<externo>>
+participant "RestDB" as DB <<externo>>
 
-actor User
-participant ":BookListActivity" as ListAct
-participant ":BookDetailsActivity" as DetailsAct
-participant ":BookApi" as Api
-participant "Retrofit" as Retrofit
-participant "Glide" as Glide
-
-User -> ListAct: clickBookItem(book)
-activate ListAct
-
-    ListAct -> DetailsAct: startActivity(intent.putExtra("BOOK_ISBN", isbn))
-    deactivate ListAct
-
-DetailsAct -> DetailsAct: onCreate(intent)
-activate DetailsAct
-
-    DetailsAct -> DetailsAct: isbn = intent.getStringExtra("BOOK_ISBN")
-
-    DetailsAct -> DetailsAct: fetchBookDetails(isbn)
-    activate DetailsAct
-
-        DetailsAct -> Api: (RetrofitClient.getBookApi())
-        activate Api
-
-        Api -> Retrofit: getBookByIsbn(LIBRARY_ID, isbn).enqueue()
-        activate Retrofit
-
-            Retrofit -> Retrofit: (HTTP GET, Parse JSON)
-
-        Retrofit --> DetailsAct: onResponse(BookResponse)
-        deactivate Retrofit
-        deactivate Api
-
-        DetailsAct -> DetailsAct: populateUi(currentBook)
-        activate DetailsAct
-            DetailsAct -> Glide: load(currentBook.getCoverUrl())
-            DetailsAct -> DetailsAct: tvTitle.setText(...)
-            DetailsAct -> DetailsAct: tvCopies.setText(...)
-            DetailsAct -> DetailsAct: btnRequisitar.setEnabled(true)
-        deactivate DetailsAct
-
-    deactivate DetailsAct
-
-    DetailsAct --> User: (Mostra os detalhes atualizados)
-deactivate DetailsAct
-
+U -> P: clica num livro
+P -> A: startActivity(intent + EXTRA_BOOK)
+activate A
+A -> A: book = getSerializableExtra(EXTRA_BOOK)
+A -> A: mostrarLivro()
+opt book sem descrição nem páginas (vem dos favoritos)
+  A -> BR: getBookById(bookId, callback)
+  activate BR
+  BR -> GB: GET /volumes/{id}
+  GB --> BR: 200 OK (Item)
+  BR --> A: onSuccess(Book completo)
+  deactivate BR
+  A -> A: book = fullBook; mostrarLivro()
+end
+A -> A: verificarDisponibilidade()
+A -> LR: getTotalCopies(bookId)
+LR --> A: total (1..5)
+A -> LR: getAvailableCopies(bookId, callback)
+activate LR
+LR -> DB: GET /loans?q={"googleBookId":id,"status":"ATIVO"}
+DB --> LR: 200 OK (List<Loan>)
+LR --> A: onSuccess(total - ativos)
+deactivate LR
+A -> A: "X de Y exemplares disponíveis"\n(btnRequestLoan ativo se X > 0)
+A -> A: verificarFavorito()
+A -> FR: findFavorite(userId, bookId, callback)
+activate FR
+FR -> DB: GET /favorites?q={"userId":uid,"googleBookId":id}
+DB --> FR: 200 OK (List<Favorite>)
+FR --> A: onSuccess(favorito ou null)
+deactivate FR
+A -> A: atualizarBotaoFavorito()
+A --> U: mostra os detalhes
+deactivate A
 @enduml

@@ -1,0 +1,16 @@
+@startuml
+title UC12 - Adicionar / remover favorito (SSD)
+
+actor "Utilizador" as U
+participant ":Sistema" as S
+
+note over U, S: Pré-condição: utilizador está a ver os detalhes de um livro
+U -> S: alternarFavorito()
+activate S
+alt livro ainda não é favorito
+  S --> U: "Adicionado aos favoritos"
+else livro já é favorito
+  S --> U: "Removido dos favoritos"
+end
+deactivate S
+@enduml

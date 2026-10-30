@@ -1,0 +1,33 @@
+@startuml
+title UC13 - Consultar favoritos (SD)
+skinparam sequenceMessageAlign left
+
+actor "Utilizador" as U
+participant ":HomeActivity" as H
+participant ":FavoritesActivity" as A
+participant ":UserSession" as S
+participant ":FavoriteRepository" as R
+participant "RestDB" as DB <<externo>>
+participant ":BookAdapter" as AD
+
+U -> H: clica em "Favoritos"
+H -> A: startActivity()
+activate A
+A -> A: onResume()
+A -> A: carregarFavoritos()
+A -> S: getUserId()
+S --> A: uid
+A -> R: getFavorites(uid, callback)
+activate R
+R -> DB: GET /favorites?q={"userId":uid}
+DB --> R: 200 OK (List<Favorite>)
+R --> A: onSuccess(List<Favorite>)
+deactivate R
+loop por cada favorito
+  A -> A: favoriteBooks.add(favorite.toBook())
+end
+A -> AD: notifyDataSetChanged()
+A --> U: mostra os favoritos
+deactivate A
+note over U, AD: ao clicar num favorito abre os detalhes (UC2);\nao voltar, o onResume() recarrega a lista
+@enduml
