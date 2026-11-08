@@ -1,5 +1,7 @@
 package com.example.projectdroid.ui;
 
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
@@ -19,6 +21,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MyLoansActivity extends AppCompatActivity {
+
+    // Cores dos separadores Ativos / Histórico
+    private static final int COLOR_SELECTED = Color.parseColor("#6750A4");
+    private static final int COLOR_NOT_SELECTED = Color.parseColor("#E0E0E0");
+    private static final int COLOR_TEXT_NOT_SELECTED = Color.parseColor("#555555");
 
     private final LoanRepository loanRepository = new LoanRepository();
     private final List<Loan> loans = new ArrayList<>();
@@ -63,9 +70,7 @@ public class MyLoansActivity extends AppCompatActivity {
     }
 
     private void carregarEmprestimos() {
-        // O botão do separador que está a ser mostrado fica desativado, para se ver qual é
-        btnActive.setEnabled(showingHistory);
-        btnHistory.setEnabled(!showingHistory);
+        atualizarSeparadores();
 
         String status = showingHistory ? Loan.STATUS_RETURNED : Loan.STATUS_ACTIVE;
 
@@ -89,6 +94,19 @@ public class MyLoansActivity extends AppCompatActivity {
                 Toast.makeText(MyLoansActivity.this, message, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    // O separador que está a ser mostrado fica roxo; o outro fica cinzento
+    private void atualizarSeparadores() {
+        pintarSeparador(btnActive, !showingHistory);
+        pintarSeparador(btnHistory, showingHistory);
+    }
+
+    private void pintarSeparador(Button button, boolean selected) {
+        int background = selected ? COLOR_SELECTED : COLOR_NOT_SELECTED;
+        int text = selected ? Color.WHITE : COLOR_TEXT_NOT_SELECTED;
+        button.setBackgroundTintList(ColorStateList.valueOf(background));
+        button.setTextColor(text);
     }
 
     // Só os empréstimos ativos podem ser devolvidos ou renovados
