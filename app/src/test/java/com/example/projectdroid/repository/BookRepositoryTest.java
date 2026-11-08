@@ -187,7 +187,7 @@ public class BookRepositoryTest {
         for (int i = 0; i < items.length; i++) {
             items[i] = item("id" + i, "Livro " + i, null);
         }
-        when(api.searchBooks(anyString(), anyInt())).thenReturn(FakeCall.sucesso(response(items)));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(response(items)));
 
         TestCallback<Book> first = new TestCallback<>();
         TestCallback<Book> second = new TestCallback<>();
@@ -198,7 +198,7 @@ public class BookRepositoryTest {
 
         // Os dois pedidos foram iguais: mesmo tema e 20 resultados
         ArgumentCaptor<String> queries = ArgumentCaptor.forClass(String.class);
-        verify(api, times(2)).searchBooks(queries.capture(), anyInt());
+        verify(api, times(2)).searchBooks(queries.capture(), eq(0), anyInt());
         assertEquals(queries.getAllValues().get(0), queries.getAllValues().get(1));
         assertTrue(queries.getValue().startsWith("subject:"));
     }
@@ -206,7 +206,7 @@ public class BookRepositoryTest {
     @Test
     public void livroDoDiaFuncionaComPoucosResultados() {
         // Se a Google devolver só 1 livro, o % evita sair da lista
-        when(api.searchBooks(anyString(), anyInt()))
+        when(api.searchBooks(anyString(), anyInt(), anyInt()))
                 .thenReturn(FakeCall.sucesso(response(item("unico", "Único", null))));
 
         TestCallback<Book> callback = new TestCallback<>();
@@ -217,7 +217,7 @@ public class BookRepositoryTest {
 
     @Test
     public void livroDoDiaSemResultadosDevolveErro() {
-        when(api.searchBooks(anyString(), anyInt())).thenReturn(FakeCall.sucesso(new GoogleBooksResponse()));
+        when(api.searchBooks(anyString(), anyInt(), anyInt())).thenReturn(FakeCall.sucesso(new GoogleBooksResponse()));
 
         TestCallback<Book> callback = new TestCallback<>();
         repository.getDailyBook(callback);

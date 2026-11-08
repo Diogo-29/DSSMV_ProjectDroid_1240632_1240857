@@ -35,8 +35,10 @@ public class DailyBookActivity extends AppCompatActivity {
     private TextView textTitle;
     private TextView textAuthor;
 
-    private Book dailyBook;          // fica preenchido quando a Google responder
-    private boolean shaken = false;  // true depois de o utilizador abanar
+    private Book dailyBook;             // fica preenchido quando a Google responder
+    private boolean shaken = false;     // true depois de o utilizador abanar
+    private boolean revealed = false;   // true depois de o livro ser mostrado
+    private boolean loadFailed = false; // true se o pedido à Google falhou (ex.: sem internet)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +79,9 @@ public class DailyBookActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (accelerometer != null && !shaken) {
-            sensorManager.registerListener(shakeDetector, accelerometer, SensorManager.SENSOR_DELAY_UI);
+        if (accelerometer != null && !revealed) {
+            sensorManager.registerListener(shakeDetector, accelerometer,
+                    SensorManager.SENSOR_DELAY_UI);
         }
     }
 
@@ -89,6 +92,7 @@ public class DailyBookActivity extends AppCompatActivity {
     }
 
     private void carregarLivroDoDia() {
+        loadFailed = false;
         bookRepository.getDailyBook(new RepositoryCallback<Book>() {
             @Override
             public void onSuccess(Book book) {
@@ -101,6 +105,9 @@ public class DailyBookActivity extends AppCompatActivity {
 
             @Override
             public void onError(String message) {
+                loadFailed = true;
+                // Permite um novo abanão, que volta a fazer o pedido (ex.: quando a internet voltar)
+                shaken = false;
                 textInstructions.setText(message);
             }
         });
@@ -112,20 +119,26 @@ public class DailyBookActivity extends AppCompatActivity {
         }
         shaken = true;
 
-        // O livro já foi revelado: deixamos de ouvir o sensor
-        sensorManager.unregisterListener(shakeDetector);
-
         // Pequena vibração para o utilizador sentir que o abanão foi detetado
-        textInstructions.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+        textInstructions.performHapticFeedback(
+                HapticFeedbackConstants.LONG_PRESS);
 
         if (dailyBook != null) {
             mostrarLivro();
         } else {
             textInstructions.setText("A carregar o livro do dia...");
+            // Se o pedido feito ao abrir o ecrã falhou, tenta outra vez
+            if (loadFailed) {
+                carregarLivroDoDia();
+            }
         }
     }
 
     private void mostrarLivro() {
+        revealed = true;
+        // O livro já foi revelado: deixamos de ouvir o sensor
+        sensorManager.unregisterListener(shakeDetector);
+
         textInstructions.setVisibility(View.GONE);
         layoutDailyBook.setVisibility(View.VISIBLE);
 

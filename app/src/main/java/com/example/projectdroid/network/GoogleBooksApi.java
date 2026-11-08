@@ -16,10 +16,6 @@ public interface GoogleBooksApi {
                                           @Query("startIndex") int startIndex,
                                           @Query("maxResults") int maxResults);
 
-    // Igual à de cima, mas escolhendo quantos resultados queremos (a Google aceita até 40)
-    @GET("volumes")
-    Call<GoogleBooksResponse> searchBooks(@Query("q") String query, @Query("maxResults") int maxResults);
-
     // Um livro pelo seu id da Google (devolve um só Item, não uma lista)
     @GET("volumes/{id}")
     Call<GoogleBooksResponse.Item> getBook(@Path("id") String bookId);

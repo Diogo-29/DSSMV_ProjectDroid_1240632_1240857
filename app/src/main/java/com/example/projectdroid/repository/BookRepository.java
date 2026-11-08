@@ -84,7 +84,7 @@ public class BookRepository {
         String subject = DAILY_BOOK_SUBJECTS[random.nextInt(DAILY_BOOK_SUBJECTS.length)];
         int position = random.nextInt(DAILY_BOOK_RESULTS);
 
-        api.searchBooks("subject:" + subject, DAILY_BOOK_RESULTS)
+        api.searchBooks("subject:" + subject, 0, DAILY_BOOK_RESULTS)
                 .enqueue(new ApiCallback<>(new RepositoryCallback<GoogleBooksResponse>() {
                     @Override
                     public void onSuccess(GoogleBooksResponse response) {
